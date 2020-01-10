@@ -1,0 +1,61 @@
+一.frustum pointnets for 3D(3d检测)
+    git clone https://github.com/charlesq34/frustum-pointnets
+思路:
+1.从2D bounding_box兴趣区域从点云图中得到相应范围内的点(最开始坐标为相机坐标系)以及这个区域的类别(one_hot code).
+
+2.首先经过get_instance_seg_v1_net网络模型对范围内的点进行分割,筛选出属于类别的点并转换到以points' centroid为中心的坐标系(坐标偏量假设为(x1,y1,z1))并对点进行处理(符合类别的点大于512个则随机选出512,小于512的把符合类别所有点并随机从符合类别的点钟随机出两者差值数量的点组合成512个点)做为训练的样本.
+
+3.样本通过 T-net网络模型进一步转换坐标系,求出坐标偏量(x2,y2,z2),所以坐标总偏量为(x1+x2, y1+y2, z1+z2),把所有点(512)减去总坐标偏量得到坐标转换后的点.
+
+4.把转换后的点放入get_3d_box_estimation_v1_net网络模型中得到参数,对参数进行计算得到3D_box的中心以及长宽高.最终得到3D_box 的8个坐标(坐标值都要加上坐标偏量).
+
+二.固化模型以及python进行预测过程中碰到的问题
+
+1.ValueError: Input 0 of node conv1/bn/cond_1/AssignMovingAvg/Switch was passed float from conv1/bn/moving_mean:0 incompatible with expected float_ref.
+  即ValueError:节点conv1/bn/cond_1/AssignMovingAvg/Switch的输入0来自conv1/bn/moving_mean:0，与期望的float_ref不兼容:
+    原因:
+        在运行freeze_graph.py(模型固化)之后，AssignSub和RefSwitch处理后的输入类型由float_ref变为了float，因此要额外地去转换一下
+
+    解决办法(pb_test_3D.py):
+        gd = graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+
+        # fix nodes
+        for node in graph_def.node:
+            if node.op == 'RefSwitch':
+                node.op = 'Switch'
+                for index in xrange(len(node.input)):
+                    if 'moving_' in node.input[index]:
+                        node.input[index] = node.input[index] + '/read'
+            elif node.op == 'AssignSub':
+                node.op = 'Sub'
+                if 'use_locking' in node.attr: del node.attr['use_locking']
+        # import graph into session
+        tf.import_graph_def(graph_def, name='')
+
+2.有关tf.py_func(tf中进行矩阵运算的自制函数)的使用:   只要网络模型中有py_func(),模型就不能固化！！！！！
+
+    1.tf.py_func(function, input, Type_out, stateful=Ture, name=None)
+    参数分析:function代表自己定义的函数, input代表接收的numpy.array输入,是一个列表. 
+           Type_out代表返回的np.array转换为tensor后的格式(tf.float32...),如果返回的是多个值,就是一个列表或者元组(例:[tf.float32, tf.float32]),如果只有一个返回值,就是一个单独的dtype类型(当然也可以用列表括起来)          
+    最后输出为一个tensor列表或者一个tensor
+    
+    2.注意点:第一就是func函数的返回值类型一定要和Tout指定的tensor类型一致.第二就是,tf.py_func中的func是脱离Graph的。在func中不能定义可训练的参数参与网络训练(反传).因此在固化模型时并不能把tf.py_func固化进网络模型.
+        the body of the function will not be serialzied in a GraphDef,therefore,you should not use this function if you need to serialize your model and restore it in a different environment.
+        函数体不会在GraphDef中序列化，因此，如果需要序列化模型并在不同的环境中恢复模型，就不应该使用该函数.(https://blog.csdn.net/jiongnima/article/details/80555387)
+
+3.pickle文件取出数据不对:
+    原因:pickle文件为序列化文件,即文件存储按照存储时间排序先后,先存储的先被取出来,取数据顺序要按照存储数据的顺序,否则数据不一致
+    例如:with open(one_pickle, "wb") as fp:
+            pickle.dump(id_list, fp)
+            pickle.dump(box_2d_list, fp)
+            pickle.dump(box_3d_list, fp)  pickle文件是按这样的顺序存储的,那么取出来的顺序为
+        with open(one_pickle, "rb") as fp:
+            id_list = pickle.load(fp)
+            box_2d_list = pickle.load(fp)
+            box_3d_list = pickle.load(fp) 注:每一次load()出一次存储顺序数据,有多少数据就load()多少次.
+        
+        
+
+
+

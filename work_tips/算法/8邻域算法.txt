@@ -1,0 +1,133 @@
+
+//static Point connects[8] = { Point(-1, -1), Point(0, -1), Point(1, -1), Point(1, 0), Point(1, 1), Point(0, 1), Point(-1, 1), Point(-1, 0)};   
+
+    cv::Mat res = Mat::zeros(img.rows, img.cols, CV_8U);
+////     用于标记是否遍历过某点
+//    cv::Mat flagMat;
+//    res.copyTo(flagMat);
+//
+//    cv::Mat image_grey;
+//    cv::threshold(ImgGray, image_grey, 200, 255, cv::THRESH_BINARY);
+//    std::vector< std::vector< cv::Point> > contours;
+//    // cv::RETR_EXTERNAL
+//    cv::findContours(image_grey, contours, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+//    image_grey = cv::Scalar::all(0);
+//    cv::drawContours(image_grey, contours, -1, cv::Scalar::all(255));
+//
+//    cv::imshow("grey",image_grey);
+//
+//    vector<Point> edge_t;
+//    vector<vector<Point>> edges;
+//    vector<vector<Point>> tests;
+//
+//    int counts = 0, curr_d = 0;
+//    for (int i = 1; i < image_grey.rows - 1; i++)
+//        for (int j = 1; j < image_grey.cols - 1; j++)
+//        {
+//            // 起始点及当前点
+//            //Point s_pt = Point(i, j);
+//            Point b_pt = Point(i, j);
+//            Point c_pt = Point(i, j);
+//
+//            // 如果当前点为前景点
+//            if (255 == image_grey.at<uchar>(c_pt.x, c_pt.y))
+//            {
+//                edge_t.clear();
+//                bool tra_flag = false;
+//                // 存入
+//                edge_t.push_back(c_pt);
+//                image_grey.at<uchar>(c_pt.x, c_pt.y) = 0;    // 用过的点直接给设置为0
+//                // 进行跟踪
+//                while (!tra_flag)
+//                {
+//                    // 循环八次
+//                    for (counts = 0; counts < 8; counts++)
+//                    {
+//                        // 防止索引出界
+//                        if (curr_d >= 8)
+//                        {
+//                            curr_d -= 8;
+//                        }
+//                        if (curr_d < 0)
+//                        {
+//                            curr_d += 8;
+//                        }
+//                        // 当前点坐标
+//                        // 跟踪的过程，应该是个连续的过程，需要不停的更新搜索的root点
+//                        c_pt = Point(b_pt.x + connects[curr_d].x, b_pt.y + connects[curr_d].y);
+//                        // 边界判断
+//                        if ((c_pt.x > 0) && (c_pt.x < image_grey.cols - 1) &&
+//                            (c_pt.y > 0) && (c_pt.y < image_grey.rows - 1))
+//                        {
+//                            // 如果存在边缘
+//                            if (255 == image_grey.at<uchar>(c_pt.x, c_pt.y))
+//                            {
+//                                curr_d -= 2;   // 更新当前方向
+//                                edge_t.push_back(c_pt);
+//                                image_grey.at<uchar>(c_pt.x, c_pt.y) = 0;
+//                                // 更新b_pt:跟踪的root点
+//                                b_pt.x = c_pt.x;
+//                                b_pt.y = c_pt.y;
+//                                //cout << c_pt.x << " " << c_pt.y << endl;
+//                                break;   // 跳出for循环
+//                            }
+//                        }
+//                        curr_d++;
+//                    }   // end for
+//                    // 跟踪的终止条件：如果8邻域都不存在边缘
+//                    if (8 == counts )
+//                    {
+//                        // 清零
+//                        curr_d = 0;
+//                        tra_flag = true;
+//                        edges.push_back(edge_t);
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    Mat trace_edge = Mat::zeros(image_grey.rows, image_grey.cols, CV_8UC1);
+//    Mat trace_edge_color;
+//    Mat trace_edge_color2;
+//    cvtColor(trace_edge, trace_edge_color, CV_GRAY2BGR);
+//    cvtColor(trace_edge, trace_edge_color2, CV_GRAY2BGR);
+//
+//    for (int i = 0; i < edges.size(); i++) {
+//        Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+//
+////        cout << "numbers:" << edges.size() << endl;
+//
+//        // 过滤掉较小的边缘
+//        if (edges[i].size() > 1) {
+//            Mat copy = Mat::zeros(image_grey.rows, image_grey.cols, CV_8UC3);
+//            int maxcorners = 10;
+//            vector<Point> corners;
+//            double qualityLevel = 0.05;
+//            double minDistance = 5;
+//            for (int j = 0; j < edges[i].size(); j++) {
+////                trace_edge_color.at<Vec3b>(edges[i][j].x, edges[i][j].y)[0] = color[0];
+////                trace_edge_color.at<Vec3b>(edges[i][j].x, edges[i][j].y)[1] = color[1];
+////                trace_edge_color.at<Vec3b>(edges[i][j].x, edges[i][j].y)[2] = color[2];
+//                copy.at<Vec3b>(edges[i][j].x, edges[i][j].y)[0] = 255;
+//                copy.at<Vec3b>(edges[i][j].x, edges[i][j].y)[1] = 255;
+//                copy.at<Vec3b>(edges[i][j].x, edges[i][j].y)[2] = 255;
+//            }
+//            cv::Mat test_1;
+//            cv::cvtColor(copy, test_1, CV_BGR2GRAY);
+//
+//            cv::goodFeaturesToTrack(test_1, corners, maxcorners, qualityLevel, minDistance);
+//            tests.push_back(corners);
+//        }
+//    }
+//
+//
+//
+//
+//    for (int i = 0; i < tests.size(); i++){
+//        for (int j = 0; j < tests[i].size(); j++){
+//            trace_edge_color2.at<Vec3b>(tests[i][j].y, tests[i][j].x)[0] = 255;
+//            trace_edge_color2.at<Vec3b>(tests[i][j].y, tests[i][j].x)[1] = 255;
+//            trace_edge_color2.at<Vec3b>(tests[i][j].y, tests[i][j].x)[2] = 255;
+//        }
+//    }
+

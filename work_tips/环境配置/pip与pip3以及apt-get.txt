@@ -1,0 +1,70 @@
+1.其实这两个命令效果是一样的，没有区别:
+
+（1）比如安装库numpy,当你电脑只有一个版本的python(3)时,pip3 install numpy或者pip install numpy是一样的：只是当一台电脑同时有多个版本的Python的时候,用pip3就可以自动区分用Python3来安装库.是为了避免和Python2发生冲突的.
+
+（2）如果你的电脑只安装了Python3，那么不管用pip还是pip3都一样的。
+
+
+2.安装了python3之后,会有pip3(当电脑python版本既有python2和python3时)
+
+（1）使用pip install XXX:
+
+        新安装的库会放在这个目录下面：python2.7/site-packages,
+
+（2）使用pip3 install XXX:
+
+        新安装的库会放在这个目录下面：python3.6/site-packages,
+
+（3）如果使用python3执行程序，那么就不能import python2.7/site-packages中的库.
+
+2.sudo pip install 与 sudo apt-get install的区别:
+
+    1.sudo pip install(或者sudo pip3 install)可以用来安装来自PyPI（https://www.python.org/）的python所有的依赖包,并且可以选择安装任何在PyPI上已上传的先前版本的依赖包,个人认为是python相关的包和第三方
+
+包以及各种版本,也可以指定任意版本.例如 sudo pip3 install numpy==1.16.2(但是当以前版本不支持当前系统时会报错,例如　xavier　控制板就不支持很多安装包旧版本,所以当不是一定需要指定固定版本安装包时,尽可能使用
+
+sudo apt-get install numpy)
+
+    2.sudo apt-get install matplotlib,  apt-get可以用来安装软件 更新源 也可以用来更新自Ubuntu（https://launchpad.net/ubuntu）的典型依赖包,典型安装即意味着它只是安装（最新发布的，或最近一个的）单一版
+
+本,并且我们不能决定我们要安装的依赖包的版本或选择它之前的版本,
+    
+    3.所有总体来说 pip3 install可以选择版本,但不一定兼容.  apt-get install安装最新版本,不可以选择版本.基本都是可以使用的　
+
+        具体选择应视情况来定
+    
+    两者下载都可以用 pip3 list　来查看是否成功安装(相当于conda list可以查看虚拟环境下的安装包),即可以查看当前python环境下有哪些安装包(当python2和python3共存时,pip对应python2,　pip3对应python3.)
+
+3.安装及应用
+apt-get是可以直接使用的，格式为
+
+$ sudo apt-get install/delete package
+$ sudo apt-get -f install                                   #修复安装
+$ sudo apt-get dist-upgrade                                 #升级系统
+$ sudo apt-get upgrade                                      #更新已安装的包
+$ apt-get source package                                    #下载该包的源代码
+$ sudo apt-get build-dep package                            #安装相关的编译环境
+$ sudo apt-get clean && sudo apt-get autoclean              #清理无用的包
+
+
+3.xavier控制板
+    
+    在xavier控制板(nvidia集中开发板)中,架构为arm64,不同于x_86-64位系统,既不能使用虚拟环境,又有很多安装包不能使用旧版本,即sudo pip3 install 很多会失败,这时候就需要用 sudo apt-get install.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    

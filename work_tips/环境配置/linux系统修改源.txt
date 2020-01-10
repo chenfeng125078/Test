@@ -1,0 +1,14 @@
+系统源的作用: apt-get install　以及 pip　install　某个安装包时,他会去源文件夹指定的位置下载,但默认源服务器中心一般在国外,因此速度很慢,因此一般替换为国内源,例如清华的或者阿里云
+
+1. sudo cp /etc/apt/source.list /etc/apt/source.list.bak 　备份默认源,防止需要复原
+
+2. 打开并编辑 source.list　文件 gedit /etc/apt/sources.list
+
+3.删除原内容(或者把原内容放置在最后),并把清华源或者阿里云的源复制在文件中保存
+
+4.sudo apt-get updata
+
+5.sudo apt-get upgrade
+
+清华源:
+

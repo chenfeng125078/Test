@@ -1,0 +1,270 @@
+数据中心：图片 smb://datacenter/tech/zed
+
+查看cuda版本:cat /usr/local/cuda/version.txt
+
+查看cudnn版本:cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2
+
+前提在ubuntu系统下先安装anaconda3： 
+    https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/ 下拉到最低端选择Linux，选择最新版（32/64位）下载。
+    在下载的目录下打开终端：bash Anaconda3-4.2.0-Linux-x86_64.sh
+            安装成功后重启终端,输入conda判断是否安装成功
+            sudo gedit ~/.bashrc
+            export PATH="/home/zhihui/anaconda3/bin:$PATH"
+            保存后 source /.bashrc
+            即可 source activate 虚拟环境
+            conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/    (镜像环境)
+    修改配置文件：在anaconda_envs中
+
+anaconda3下的各种操作:
+    1.创建环境: conda create -n py2 python=2.7
+    2.激活环境: conda activate py2
+    3.退出环境: conda deactivate
+    4.删除环境: conda remove -n py2 --all
+    5.安装安装包: conda install numpy
+    6.卸载某个包: conda uninstall numpy
+    7.查看环境: conda list
+    8.查看所有环境: conda info --envs
+
+在ubuntu anaconda系统下安装opencv:
+        source activate (name)
+    激活虚拟环境后:conda install --channel https://conda.anaconda.org/menpo opencv(默认安装2.4.11版本，opencv->opencv3默认安装3.1.0版本
+
+语义分割环境配置：（https://github.com/MarvinTeichmann/KittiSeg）
+
+红蓝色为软分割，绿色为硬分割
+    
+    conda create -n py2 python=2.7
+    source activate py2
+    下载安装包以及依赖包：
+    conda install cudatoolkit=8.0 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/linux-64/   (安装cuda)
+    conda install cudnn=7.0.5 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/linux-64/            （安装cudnn可以自己改版本）
+
+    conda install -n py2 tensorflow  (安装tensorflow)
+    conda install -n py2 tensorflow-gpu (安装tensorflow-gpu(最后安装))
+
+    激活虚拟环境情况下：pip install numpy==1.16.2 scipy pillow matplotlib commentjson(numpy版本过高会报错)
+    git clone https://github.com/MarvinTeichmann/KittiSeg.git(语义分割的网址)
+    git submodule update --init --recursive （更新代码）
+
+    在提供的网址上下载 data_load.zip，下载完要移动至kittiseg目录下的 DATA 目录下，先运行download_data.py 下载 vgg16.npy 再配置 demo.py 中的 hypes【dirs】[data_dir]，按教学即可运行。
+
+    想用自己训练的参数   调整 evaluate.py 中 flag.DEFINE_string("run",“kittiseg_pretrained”(指定你自己训练参数的目录))
+
+    改变用于测试的数据集  改变kitti_test.py里面 test_file = "data_road/testing.txt"指定的图片（注意看图片目录与程序中是否一致)  在txt文件中不能有空行！
+
+    训练集在 hypes/kittiseg.json 中 data 下 train_file 指定的文件
+
+    验证集在 hypes/kittiseg.json 中 data 下 val_file 指定的文件
+
+    所有参数设定 都在 hypes/kittiseg.json 中
+    
+    kittiseg evaluate.py碰到的坑: 1.error:TypeError: float() argument must be a string or a number 是eval_file里面的部分图片读取错误,需要把图片删除！
+
+二.labelimg进行图片标注：
+
+    https://github.com/tzutalin/labelImg
+
+    按照下面提示安装各种依赖包，最后用python3 labelimg.py启动窗口
+
+三.labelme 进行道路标注 进行语义分割：
+    
+    进入conda虚拟环境下(python=2.7) 我的conda虚拟环境py2 python版本刚好是2.7
+    source activate py2
+    conda install pyqt
+    pip install labelme
+    在py2虚拟环境下输入  labelme 即可进入程序
+    在labelme软件下进行标注后保存的是json文件，在文件转换时可能会缺少安装包，使用命令 conda install (包名) 安装
+
+    此时在你想保存文件的目录下打开终端，激活conda环境(为了激活labelme环境) source activate py2
+    执行命令 labelme_json_to_dataset   (文件名).json 将会在你打开终端的目录下生成该json文件的文件夹
+    
+    注意:在labelme中分类的各个类别的颜色通道不知道(例如：红色不一定是255,0,0) 此时可以通过一个脚本来求得(road)类别的颜色通道值
+
+    在labelme软件中各种 种类颜色通道 1.红(128,0,0) 2.绿(0,128,0) 3.黄(128,128,0) 4.蓝(0,0,128) 5.背景(0,0,0)
+    
+    labelme源代码位置 Anaconda所在路径\envs/py2\Lib\python2.7/site-packages\labelme\cli下的json_to_dataset.py
+
+四. resnet学习
+    source activate py2
+    conda install -n py2 scikit-image
+ 
+
+五.c++ tensorflow部署(环境搭建)
+    (参照网址:http://www.liuxiao.org/2018/08/ubuntu-tensorflow-c-从训练到预测1：环境搭建/)这个是最详细的
+    博客中错误: 安装依赖库命令: sudo apt-get install pkg-config zip g++ zlib1g-dev unzip     
+
+    bazel编译GPU版本: bazel build --config=opt --config=cuda //tensorflow:libtensorflow_cc.so
+
+    1.环境安装碰到的错误: Cuda Configuration Error: Cannot find libdevice.10.bc under /usr/local/cuda-8.0
+        解决方法:   1.sudo cp /usr/local/cuda-8.0/nvvm/libdevice/libdevice.compute_50.10.bc /usr/local/cuda-8.0/nvvm/libdevice/libdevice.10.bc
+                  2.sudo cp  /usr/local/cuda-8.0/nvvm/libdevice/libdevice.10.bc    /usr/local/cuda-8.0/libdevice.10.bc
+
+    2.ERROR: Config value cuda is not defined in any .rc file(bazel版本过高)
+
+    3.undefine reference cuda:没有链接和找到cuda环境,在 ~/.bashrc中加入环境变量 export PATH=/usr/local/cuda/bin:$PATH
+                                                                        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-8.0/lib64:/usr/local/lib
+
+    4.error : libcudart.so.8.0: cannot open shared object file: No such file or directory
+             解决方法:首先确定在 usr/local/cuda-8.0/lib64 目录下有 libcudart.so.8.0 文件,没有请正确安装cuda和cudnn
+                    若有,该问题与linux 下 ldconfig命令有关,打开终端输入: sudo ldconfig /usr/local/cuda-8.0/lib64 完成后重新编译
+
+
+六.语义分割中soft_f1损失
+    def _compute_f1(hypes, labels, softmax, epsilon):
+        labels = tf.to_float(tf.reshape(labels, (-1, 2)))[:, 1]
+        logits = softmax[:, 1]
+        true_positive = tf.reduce_sum(labels*logits)
+        false_positive = tf.reduce_sum((1-labels)*logits)
+
+        recall = true_positive / tf.reduce_sum(labels)
+        precision = true_positive / (true_positive + false_positive + epsilon)
+
+        score = 2*recall * precision / (precision + recall)
+        f1_score = 1 - 2*recall * precision / (precision + recall)
+
+    return f1_score
+
+七.multinet联合模型
+    1.双重字典表示hypes[model]={"detection": "../submodules/KittiBox/hypes/kittiBox.json", 
+                            "road": "../submodules/KittiClass/hypes/KittiClass_VGG.json", 
+                            "segmentation": "../submodules/KittiSeg/hypes/KittiVGG.json"}
+        for model in hypes[model](未指定是键还是值,则指的是键 即"detection","road","segmentation")
+
+八.将python tensorflow 下 ckpt文件转换为 pb文件
+    1.checkpoint是检查点文件，文件保存了一个目录下所有的模型文件列表；
+    2.model.ckpt.meta文件保存了TensorFlow计算图的结构，可以理解为神经网络的网络结构，该文件可以被 tf.train.import_meta_graph 加载到当前默认的图来使用。
+    3.ckpt.data : 保存模型中每个变量的取值
+
+九.ckpt文件转pb文件过程踩过的坑
+    流程:(参考博客:https://blog.csdn.net/guyuealian/article/details/82218092#commentBox)
+        1.先将权重与偏置系数与网络图一起进行固化.(freeze_graph.py)其中最重要的一点就是指定"输出节点(output)",如果网络结构中没有自己设定输出节点(最重要的是定义name,result = tf.nn.softmax(logits, name = "output")),那么固化的模型没有意义
+           需要指定输出节点的代码部分:def freeze_graph(input_checkpoint,output_graph_path):
+                                    output_node_names(输出节点) = "decoder/output"(这个地方要指定name_scope(),variable_scope(可能没有))  代表input在 with tf.name_scope("decoder"):缩进范围内
+                                    saver = tf.train.import_meta_graph(input_checkpoint + ".meta", clear_devices=True)
+                                    graph = tf.get_default_graph()
+                                    input_graph_def = graph.as_graph_def()
+                                    with tf.Session() as sess:
+                                        saver.restore(sess,input_checkpoint)
+                                        output_graph_def = graph_util.convert_variables_to_constants(
+                                            sess = sess,
+                                            input_graph_def = input_graph_def,
+                                            output_node_names = output_node_names.split(",")
+                                        )
+                                         with tf.gfile.GFile(output_graph, "wb") as f:
+                                            f.write(output_graph_def.SerializeToString())
+                                         print("%d ops in the final graph." % len(output_graph_def.node)) (输出当前图中有多少个操作节点)
+            如果你最初训练参数的网络模型没有定义输出节点,你需要重新定义输出节点再重新训练参数(输入节点也是一样).
+    
+    2.经过第一步ckpt文件就成功转化为可使用的pb文件,再使用转化的pb文件进行预测.(输入一张图片,进行道路分割)
+        脚本文件:(pb_file_test.py)
+            其中传输入节点的代码:input_image_tensor = sess.graph.get_tensor_by_name("Inputs/input:0") 一样要指定name_scope()
+                    1.当时代码并没有指定输入节点,那么程序根本无法运行,记着一点要在代码定义输入图片的时候传输入节点名字
+                    2.有些变量定义的语句是不能进行命名的,会提示错误 例如: image.set_shape([720,1280,3],name = "input")这就是错的,传shape的地方不能命名.
+                        
+                    3.而且并不是输入图片的语句定义输入节点名字就是对的,因为你后面传入图片的时候只能传多维数组(scipy.misc.imread(pic)),假设你是在图片处理的地方命名输入节点(image = tf.expand_dims(image, 0, name = "input")命名可以成功，但是在处理会发生错误,提示维度错误,我当时是读取完图片升维处理再feed数据,那么就有下一个问题:feed数据只能feed多维数组,而你升维处理后变成一个tensor,我就想着转换为多维数组(np.array(你肯定也会这么想)),然而还是错的,因为内部数据处理计算就会出现问题)
+
+    解决办法:我当时是这么想的:你要想命名成功并且传入的最初数据是scipy.misc.imread()读出来的3维数组,那么就不能先升维,可以把数组进行两次转置(此时input是不是还没变?)在第二次转置的地方进行命名成输入节点(完美) 即:第一次转置image = tf.transpose(image,perm=[0,2,1])第二次转置image=tf.transpose(image,perm=[0,2,1],name="input")
+            通过上述方法才能定义好输入节点,就可以使用pb文件进行预测图片.out出来是一个多维数组,后面代码中还是要添加数据处理方式！
+
+十二.python预测pb文件时碰到的error:
+
+        could not create cudnn handle: CUDNN_STATUS_INTERNAL_ERROR
+        could not destroy cudnn handle: CUDNN_STATUS_BAD_PARAM
+
+解决方法: 删除家目录下面的隐藏文件夹 .nv 即可. sudo rm -rf ~/.nv/
+
+十.安装编译opencv(opencv.org  3.4.6版本):
+    1.下载opencv3.4.6的安装包,解压
+    2.cd opencv
+    3.mkdir build
+    4.cd build
+    5.sudo apt-get install cmake-gui
+    6.cmake-gui ..
+    7.make -j8
+
+十一. 代码移植(从python到c++):
+
+    c++ tensorflow通过bazel编译之后,用代码读取pb文件,其中c++(clion软件进行代码编写)中CMakeLists.txt中环境配置为
+
+cmake_minimum_required (VERSION 2.8.8)
+project (example)
+
+set(CMAKE_CXX_STANDARD 14)
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+set(CMAKE_PREFIX_PATH  "/usr/local/lib:/usr/local/lib64")
+
+find_package(Eigen3)
+find_package(OpenCV REQUIRED)
+
+
+message(STATUS "cuda: " ${CUDA_LIBRARIES})
+message(STATUS "cuda1:" ${CUDA_CUBLAS_LIBRARIES})
+message(STATUS "cuda2:" ${CUDA_npp_LIBRARY})
+message(STATUS "OpenCV:" ${OpenCV_INCLUDE_DIRS})
+message(STATUS "OpenCV:" ${OpenCV_LIBRARY_DIRS})
+message(STATUS "OpenCV:" ${OpenCV_LIBS})
+
+include_directories(
+        /usr/local/include/tf
+        /usr/local/include/tf/bazel-genfiles
+        /usr/local/include/tf/third_party
+        /usr/local/include/eigen3
+        ${OpenCV_INCLUDE_DIRS}
+)
+link_directories(
+        /usr/local/lib
+        /usr/local/cuda/lib64
+        ${OpenCV_LIBRARY_DIRS}
+)
+add_executable(example  pb_file.cc)
+target_link_libraries(example tensorflow_cc tensorflow_framework
+        ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${OpenCV_LIBS})
+
+
+    接下来就是读取pb文件内的模型以及参数,进行图片预测,参照 pb_file.cc中代码.
+
+十三.关于tensorflow占用显存说明
+
+1.tensorflow默认占用所有GPU资源,因此import tensorflow就会把GPU显存占满
+    2.解决方法:
+        1.config = tf.ConfigProto()
+          config.gpu_options.allow_growth = True
+          session = tf.Session(config = config)或者 with tf.Session(config = config) as sess:
+            此时分配器根据需求增长GPU内存
+
+      2.config = tf.ConfigProto()
+        #占用GPU 40%的显存,通过指定比例
+        config.gpu_options.per_process_gpu_memory_fraction = 0.4
+        session = tf.Session(config = config) 或者 with tf.Session(config = config) as sess:
+            通过限定显存比例来限定显存
+
+2.虽然指定了某个GPU运算,但还是会占用另外一个GPU的显存(多个GPU),默认占用所有GPU资源.
+    解决办法:
+        import os
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0" //使用GPU0，这样就不会占用GPU1的显存
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+

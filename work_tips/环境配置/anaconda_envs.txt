@@ -1,0 +1,9 @@
+sudo gedit ~/.bashrc(自定义配置环境)
+
+把下面代码加到最后面：
+
+export PATH="/home/zhihui/anaconda3/bin:$PATH"(指定home目录下虚拟环境(zhihui根据电脑来改变路径))
+
+source ~/.bashrc
+
+以后在终端中只需要:source activate py2(envs)就可激活conda虚拟环境

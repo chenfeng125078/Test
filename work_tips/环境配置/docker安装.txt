@@ -1,0 +1,61 @@
+详细步骤见:https://blog.csdn.net/baimafujinji/article/details/89784555
+
+需要注意的几个坑:
+
+    1.添加源的时候要注意自己ubuntu版本　终端输入命令lsb_release -cs　可以查看
+
+        当时用的是linuxMint(18.03 sylvia)　ubuntu没有该版本　应当使用的是ubuntu16.04版本源(xenial)
+
+        sudo gedit /etc/apt/sources.list 添加以下源到文件中
+
+        #deb cdrom:[Linux Mint 18.3 _Sylvia_ - Release amd64 20171124]/ xenial contrib main non-free
+        # 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+        deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse
+        # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse
+        deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse
+        # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse
+        deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse
+        # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse
+        deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse
+        # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse
+
+    2.     sudo add-apt-repository \
+           "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+           $(lsb_release -cs) \
+           stable"　　　这个错误原因还是因为指定版本不对　
+
+    解决方法:　把 $(lsb_release -cs)(这个命令代表ubuntu版本缩写　当是linuxMint时为sylvia,但实际ubuntu找不到该版本)　替换成　xenial
+
+    也就是输入　sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+
+    3.  安装NVIDIA-Docker版本
+        
+        echo:可以用来输出文本
+
+        curl:是通过url语法在命令行下上传或下载文件的工具软件，它支持http,https,ftp,ftps,telnet等多种协议，常被用来抓取网页和监控Web服务器状态
+
+        distribution=$(. /etc/os-release;echo $ID$VERSION_ID) 　(LinuxMint18.3)
+        curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+            sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+        原因: 还是因为 nvidia-docker没有 Linuxmint18.3这个版本,应当使用ubuntu16.04来进行下载
+
+        解决方法:1. distribution = ubuntu16.04
+                  curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+                       sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+        或者直接:curl -s -L https://nvidia.github.io/nvidia-docker/ubuntu16.04/nvidia-docker.list | \
+                   sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+    4.运行docker中的某个脚本(通过映射将文件映射到docker)
+
+        sudo docker run -i -t --runtime=nvidia -v /home/sedy/cf_tf /home wlt027-frustumpointnets:ubuntu16.04 bash
+
+        1.  sudo docker run -i -t + docker中的一个image 就是激活该image环境
+        2.  -v 代表映射　将原环境下某个目录映射到docker环境中　这样就不需要文件复制操作也可以运行脚本
+        3.　　--runtime=nvidia 表示如果你脚本中需要用到cuda 就必须加上这句话
+        4.　　wlt027-frustumpointnets:ubuntu16.04 指定 docker image以及他的版本号
+        5.  bash 代表打开终端
+
+
+
+

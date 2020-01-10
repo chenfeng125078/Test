@@ -1,0 +1,27 @@
+sys库 可用来进行命令行 传参数值
+getopt库 用来存储长短参数（--filename 长参）（-h 短参）
+
+例：
+import sys
+import getopt #(需要传长短参)
+
+argv = sys.argv      #(这一行的作用是将你输入的命令行转换成一个列表)
+	例如：python test.py -h --filename test.txt --scale 20 会将该命令行转换为 list [test.py, -h, --filename, test.txt, --scale, 20]
+short_args = "h" （短参）
+long_args = ["filename=", "x_start=", "y_start=", "scale=", "help"]     #(长参数放在一个列表中,都要加=号,也就是 "filename=", 否则在传参的时候会报错）
+opts, args = getopt.getopt(sys.argv[1:], short_args, long_args) 
+print(opts)           # 以上述命令行为例 输出的时 [("-h", ""), ("--filename", "test.txt"), ("--scale", 20)]
+opts = dict(opts)     #将列表转换为字典
+if "--filename" in opts:
+    filename = opts["--filename"]       # 这样就将命令行的参数传到程序当中
+..........
+if "-h" or "--help" in opts:    (判断是否寻求帮助)
+    print((
+                  '请配置point.json和path.json文件，设置好opentcs的点信息和链接信息\n'
+                  '--filename: 输出文件名。默认{0}\n'
+                  '--x_start: opentcs的visualLayout画板起点x坐标。默认{1}\n'
+                  '--y_start: opentcs的visualLayout画板起点y坐标。默认{2}\n'
+                  '--scale: opentcs当中一格的x方向和y方向长度，比如50就是一格50mm。默认{3}\n').format(filename, x_start, y_start, scale))    # {0}指.format()内的第一个参数,{ }则按默认排序
+    sys.exit()   # 
+.......(后面接自己的函数)
+

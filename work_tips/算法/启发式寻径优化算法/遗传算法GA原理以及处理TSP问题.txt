@@ -1,0 +1,72 @@
+下面介绍的启发式寻径算法有：遗传算法（GA）、粒子群算法（PSO）、模拟退火算法（SA）、蚁群算法（ACA）、免疫算法（IA）、鱼群算法（AFSA）以及经典的 旅行商问题（TSP）
+
+搜索算法的特征
+① 首先组成一组候选解
+② 依据某些适应性条件测算这些候选解的适应度
+③ 根据适应度保留某些候选解，放弃其他候选解
+④ 对保留的候选解进行某些操作，生成新的候选解。
+
+1。遗传算法（GA）在python的实现
+
+首先以  x0 ** 2  + (x1 - 0.05) ** 2 + (x2 - 1) ** 2 为例
+	首先通过 x1,x2,x3 的取值范围确定染色体数（也就是基因数，多个基因控制一个未知数）
+	设置最大迭代次数=500，种群数量=50， 突变概率=0.001，其中 x1~[-1, 1], x2~[-10, 10], x3~[-5, 2]
+
+实现步骤：
+    1. 建立目标函数， 例子中目标函数为 demo_func = lambda x:  (x[0]) ** 2 + (x1 - 0.05) ** 2 + (x2 - 1) ** 2
+    2. 通过取值范围确定染色体数，其中多个染色体控制一个变量  lind = np.ceil(np.log2(（上限 - 下限）/percision(默认1e-7))) + 1
+    3. 总染色体数 = 各变量的染色体和
+    4. 创建基因矩阵  self.Chrom = np.random.randomint(low=0, high=2, size=(种群数量，总染色体数))
+    5. 循环（最大迭代次数）次：
+	1.将种群基因 Chrom 矩阵转换为 X 变量矩阵 (根据控制各变量的染色体数进行 X 矩阵求解)
+	在本例中：各变量在基因矩阵中的表示为 lind.cumsum( )  若 a = [12, 13, 15]  则 cumsum_len_segment = a.cumsum( ) = [12, 25, 40]
+		  所以各个变量的基因矩阵可以表示为 	for i ,j in enumerate( a.cumsum( ) ):
+							if i == 0:
+						   		chrom_tmp = Chrom[: , : cumsum_len_segment[0]]
+							else:
+						    		chrom_tmp = Chrom[: , cumsum_len_segment[i -1] :  cumsum_len_segment[i]]
+		  对基因矩阵再进行以下处理
+							_, len_chrom_code = chrom_tmp.shape
+							b = chrom_tmp.cumsum(axis=1) % 2
+							mask = np.logspace(start=1, stop=len_chrom_code, base=0.5, num=len_chrom_code) # 以0.5为底，1到 len_chrom_code为
+															幂的一个 number= num的等比数组
+							temp1 =  (b * mask).sum(axis=1) / mask.sum( )    
+							X[ : , i] = 下限[i] + （上限[i] - 下限[i]）* temp1
+	2.将 X 变量矩阵通过函数转换为 Y 矩阵
+		Y = np.array(func(x) for x in X)
+	3.选择是选择适应度最大的，也就是函数值最大的，因此要将 Y 矩阵取反得到适应度矩阵 V
+		V = - Y
+	4.选择最优子代	假设每个种群中每个父代产生三个子代，在这三个子代中选出适应度最高的一个子代来代替父代，然后生成新的种群基因矩阵Chrom
+		select_index = [ ]
+		for i in range(种群数量)：
+		    son_index = np.random.choice( range(种群数量)，size = 3)
+		    select_index.append( max(son_index, key=lambda i : V[i]) )    选出适应度V中最大的index
+		Chrom = Chrom[ select_index, : ]
+	5.交叉（交换一半种群的基因片段）更新基因矩阵
+		for i in range(0, int(种群数量 / 2), 2):
+		    Chrom1, Chrom2 = Chrom[i], Chrom[i+1]
+		    n1, n2 = np.random.randomint(0, 基因总数, 2)
+		    if n1 > n2:
+		        n1, n2 = n2, n1
+		        Chrom1[n1:n2], Chrom2[n1:n2] = Chrom2[n1:n2], Chrom1[n1:n2]    交换 n1-n2 的基因片段
+	6.变异(在突变概率条件下多基因矩阵Chrom发生突变的部分进行加1处理) 更新基因矩阵
+	7.将 每次循环 Y 最小的个体保存，并保存他的 X 值
+	8.循环完成再在 每次循环保存的数据中取出 Y最小的个体，它的 X 作为最佳的 X
+
+2.遗传算法处理TSP（旅行商问题）：
+	关于旅行商问题每一个点代表一个变量，因此每一个染色体代表一个变量
+	1.先创建坐标点n=50个，求得距离矩阵 distance_matrix, 也就是每个点与点之间的欧氏距离 distance_matrix = scipy.spatial.distance.cdist (points, points, metric='euclidean(欧式距离)' )
+	2.创建目标函数为 排序完的距离之和，传进来一个排序列表 也就是 sum (distance_matrix[ list[i % num_points] , list[(i +1) % num_points]] for i in range(num_points))
+ 	3.设置 种群数量=50， 最大迭代次数=2000，染色体数也就是变量数=50，基因突变概率=0.3
+	4.将基因矩阵转换为x矩阵：tmp=np.random.rand(size_pop, len_chrom)
+			           self.Chrom = tmp.argsort(axis = 1) (不同列之间从小到大排序的下标)
+				self.X = self.Chrom
+	5.将X矩阵通过函数转换为Y适应值
+				self.Y = np.array([self.func(x) for x in self.X])
+	6.因为是选择适应值最大的，因此将目标函数矩阵转换为 self.V = - self.Y
+	7.选择最优子代来代替父代自己  在种群中随机选择三个作为自己的子代，选出其中适应度最高的子代代替自己来更新基因矩阵
+	8.交叉（一半的种群的基因片段）更新基因矩阵
+	9.变异更新基因矩阵
+	10.将每次迭代中适应度 self.V 最高的个体（y值最小的个体）保存起来，并保存他的X值
+	11.循环完最后从每次循环保存的数据中取出适应度最高的个体，以此最为最优解
+		

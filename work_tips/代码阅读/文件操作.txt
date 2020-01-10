@@ -1,0 +1,131 @@
+1.pickle序列化文件读写(附加)操作:
+    import cPickle as pickle
+    读: with open(file, "rb") as fp:
+            x1 = pickle.load(fp)
+            x2 = pickle.load(fp) 一次load一个存储的数据(可以是单个,也可以是列表)
+    写: with open(file, "wb") as fp:
+            pickle.dump(a, fp)
+            pickle.dump(b, fp) dump存储的数据类型(可以是单个,也可以是列表)
+    附加:with open(file, "ab") as fp:
+            pickle.dump(c, fp)
+            pickle.dump(d, fp) 附加数据在原文件最后
+
+2.json文件（轻量级数据交换格式，可用来读取列表，字典）的读写
+    读：with open(filename, "r") as fp:   # 其中文件 file_name 并不一定要 json 文件, json.load()想当于把文件当作 json文件 来读取
+	  data = json.load(fp)    #也可以 data = json.loads(fp.read())
+   
+    写： with open(filename, "w") as fp:
+	  json.dump(data, fp)    # 将data以json数据格式写入fp中,filename不一定是json文件
+
+
+3.txt文档文件（文本文档 读取出来为 str 类型）读写操作:
+
+    逐行读取: 1.with open(.txt, "rb") as txt_file:
+                for line in txt_file.readlines():
+                    str_1 = line      (txt_file.readlines()返回的是一个字符串列表,str_1该字符串输出的时候最后面也包括换行符"\n",因此可以用str.rstrip()的方法去掉最后面的换行符)
+                  即str_2 = str_1.rstrip()
+            2.list = [line.rstrip() for line in open(filename)]
+
+    写:  with open(.txt, "wb") as txt_file:
+            写操作会先清除文件原内容,假设要写一个shape为(8,3)的多维数组a
+            for i in range(len(a)):
+                for j in range(len(a[0])):
+                    x = a[i][j] 　　假设该值为float(int),则要先转换为str型才能写入,再根据需要添加空格" "以及换行符"\n"
+                    txt_file.write(str(x) + " ")　　(在每个元素后面加入空格或者逗号,方便字符串做分割split进行元素提取)
+            txt_file.write("\n") (在最后加入换行符,方便以后逐行读取)
+
+    附加操作:with open(.txt, "ab") as txt_file:
+                txt_file.write("abc" + " ")
+                附加操作与写几乎一样,只不过不会清除原文件内的内容,而是把字符添加到文件末尾
+
+
+4.XML文件（可拓展标记语言） 写入操作 ( ros里面,opentcs里面用得比较多)
+    xml文件有节点的概念，根节点后面支节点，支节点下可能还有支节点
+
+from lxml import etree (xml库)
+	# 先创建根节点
+model = etree.Element("model")   # 创建model的根节点
+	# 用 ops.set() 在节点进行参数值设定
+	# model.set("name", "value")
+model.set("version", "0.0.2")   # 指定版本号
+model.set("name", "1")    # 指定名字
+	# 在根节点下创建支节点 etree.SubElement(根节点名, "支节点名")
+point_now = etree.SubElement(model, "point")
+point_now.set("name",  "value")
+	#在'point'支节点下再创建支节点'property'
+property_now = etree.SubElement(point_now, "property")
+property_now.set("name", "value")
+property = etree.SubElement(model, 'property')
+property.set("name", "tcs:modelFileLastModified")
+property.set("value", 时间戳)
+	#最后生成xml树,以根节点来生成树
+tree = etree.ElementTree(model)
+	#把树写入文件 filename 中
+tree.write(filename, pretty_print=True, xml_declaration=True, encoding='utf-8', standalone='yes')
+
+5.XML文件修改参数操作（修改 树 节点下“point”中“zPosition”的值，值的大小来自于“point”节点下“property”的“z”的 value 属性）
+	https://blog.csdn.net/piaodexin/article/details/77371343
+
+    在xml文件中节点内的参数与参数属性相当于字典内的键值对
+    有两个解析xml文件的工具包 xml 以及 lxml
+    其中解析的函数包自带在python3.7中 xml下的etree文件夹下的ElementTree.py程序中
+    lxml包中的函数在 lxml下的etree
+    第一步：解析xml文件 from xml.etree.ElementTree import ElementTree, Element   或(from lxml import etree)
+	tree = ElementTree( )
+	tree.parse(file_path)   file_path为 xml文件路径
+
+    第二步：查找当前节点下的所有子节点（第一次的节点为根节点model, 因此只能当前的子节点，不能找子节点的子节点，否则会返回"空"）
+	def find_nodes( tree(父节点)， path(子节点名))：
+		return tree.findall(path)
+	nodes = find_nodes(tree, "point")  表示在“树节点"下寻找所有"point",返回一个列表
+
+    第三步：遍历nodes寻找需要替换的 z 的 value
+	def if_match(node, kv_map):   这里node是一个 "point"节点
+		for key in kv_map:
+			if node.get(key) != kv_map.get(key)：  这里是取key所对应的值
+				return False
+		return True
+
+	def get_node_by_keyvalue(nodelist, kv_map)  注意这里nodelist是一个列表
+		result_nodes = []
+		for node in nodelist:
+			if if_match(node, kv_map):   ( 把name ="z"的 property 拿出来)
+				result_nodes.append(node)
+		return result_nodes
+
+	def get_value(nodelist, kv_map):
+		if len(property_now) == 1:
+			use_node = property_now[0]
+			for key in kv_map:
+				z_value = use_node.get(key)
+
+	for node in nodes:
+		property_now = get_node_by_keyvalue(node, {"name": "z"})  这里是一个列表
+	取出property中z的value
+		z_value = get_value(property_now, {"value": ""})
+		z_value = z_value.split(".")[0]     将字符型浮点数转换为字符型整数
+
+    第四步：将point下的 zPosition 的值进行修改
+	def change_node_properties(node, kv_map):
+		for key in kv_map:
+			node.set(key, kv_map.get(key))
+
+	change_node_properties(node, {"zPosition": z_value})
+    第五步：写xml文件
+	def write_xml(tree, out_path):
+		tree.write(out_path, encoding="utf-8", xml_declaration=True)
+
+	write_xml(tree, file_name)	
+
+6.文件命名(文件不存在会自动创建文件,前提是文件的目录(dir)都存在,否则会报错):
+    base_dir = "/home/zhihui/code"
+    file_path = os.path.join(base_dir, "%06d.txt"%(id)) 保留六位作为文件命名
+
+
+
+
+
+
+
+
+

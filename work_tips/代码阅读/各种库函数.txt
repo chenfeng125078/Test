@@ -1,0 +1,205 @@
+bool类型 可以与 数字 相乘: 此时true = 1,false = 0,进行乘法运算
+
+对列表进行切片操作: i = j[0:2](其中j也是一个列表) 代表i 从j中得到[i[0],i[1]]的一个切片列表,切片操作包括左边的下标,但不包括右边的下标(即左闭右开).
+
+argparse库(传参数)
+  顺序 1.import argparse
+      2.parser = argparse.ArgumentParser()
+      3.传参 parser.add_argument("--name",type(类型),default(默认),help(提示信息))
+      4.args = parser.parse_args()
+      5.调用参数 a = args.name
+
+scipy库 和 PIL.Image的使用区别:
+    1.打开一张图片: scipy.misc.imread() 该方法读取的图片为一个多维数组(rgb三颜色通道 [hight,width,3]数组) 
+                 scipy.misc.toimage(多维数组,mode="默认RGB")返回的是class(PIL.Image.Image)
+                  PIL.Image.open() 该方法返回的是class(PIL.Image.Image)
+    2.保存图片: scipy.misc.imsave(path,img) scipy该方法path可以指定路径与名称(path=os.path.join("path",name)),img可以是class(PIL.Image.Image),也可以多维数组
+              PIL.Image.save("name") 该方法只能指定图片名称,保存在程序所在目录
+
+
+python PIL库 = python image library 图像处理库(内置) (用img = Image.open(picture)打开图片就可以调用所有方法对图片进行操作,img.show(),img.save())
+    from PIL import Image, ImageDraw, ImageFont
+    1.Image.paste() : 像素组合
+    2.Image.convert("RGBA") : RGB模式改变成RGBA模式
+    3.Image.blend(img1,img2,float(0-1) : 图片融合,第三个参数代表img2透明度为多少(0代表完全透明，1代表完全是该图片),图片融合要先将RGB模式convert为RGBA模式
+    
+
+scipy库:
+    1.scipy.misc.imresize(arr,size,interp='bilinear',mode=none):改变图像大小并隐藏归一化到0-255区间的操作,第一个参数表示要resize的图像数组,
+                                                                第二个参数表示resize方式:1》.int型,表示百分比  2》.float型,表示原图像的多少倍 3》.元组,表示直接定义输出图像的长和宽,与原图大小无关.
+                                                                第三个参数表示插值方式:('nearest', 'lanczos', 'bilinear', 'bicubic', 'cubic')是一个可选的参数,分别是最近邻差值,Lanczos采样放缩插值,双线性插值,双三次插值,三次插值
+    
+    2.scipy.misc.toimage(array,mode="RGBA"): 将数组转换成图片,采用的模式是"RGBA",RGB代表三颜色通道,A代表alpha颜色空间,以百分号代表透明度,0%代表完全透明化,而100%代表一个不透明的像素,可以透过背景显示出来.
+    3.scipy.misc.imsave(path,img)
+    
+    语义分割中颜色改变:
+    def fast_overlay(input_image, segmentation, color=[0, 255, 0, 127]):
+  
+        color = np.array(color).reshape(1, 4)
+        shape = input_image.shape
+        segmentation = segmentation.reshape(shape[0], shape[1], 1)
+        
+        #segmentation是一个bool多维数组与color相乘(true = 1,false = 0)
+
+        output = np.dot(segmentation, color)
+        output = scipy.misc.toimage(output, mode="RGBA")
+
+        background = scipy.misc.toimage(input_image)
+        background.paste(output, box=None, mask=output)
+
+    return np.array(background)
+
+python内置函数库:
+    1.hasattr(object,"name") 如果object对象中有“name”这个属性,返回true,没有该属性返回false.(可以用来判断一个py文件中有没有"name"函数,当然要先用imp.load_source()才能导入源文件)
+
+shutil库:
+    1.shutil.copyfile(src,dst) src和dst都需是文件名,如果dst已存在，dst会被覆盖
+    2.shutil.copy(src,dst) dst可以是目录,表示源文件src复制到dst目录下,若dst是文件，则表示复制到文件dst
+    3.shutil.copy2(src,dst) 将最后访问与修改时间也复制过来了
+
+
+numpy库:
+    1.np.maximum(): np.maximum(1,[1,2,0,-1,-2]) 作用:把列表中小于第一个值(1)的所有值替换成(1).变成[1,2,1,1,1].
+    2.np.dot(): 矩阵点乘
+    3.np.where(condition,x,y) 该函数表示若condition成立,则为x,若不成立,则为y.
+    4.np.where(condition) 该函数与上面函数相比,没有x,y值.当条件成立输出满足条件的坐标(tuple).
+    5.np.random.choice(x,size=a,replace=None,p=None) 该函数表示从x中随机取出size个数,replace=None代表不放回抽取,p=None代表同等概率.
+    6.np.concatenate((a,b),axis=) 按轴axis将列表中的array连接成一个新的array.
+    7.np.random.shuffle(x) 把x随机打乱,类似于洗牌. 若x是多维数组,默认随机打乱x的第一维度(行).
+    8.np.shape(a) 把多维数组a的各维度大小以元组表示出来
+
+collections库:
+    1. counter类: counter(str).most_common(int)表示输出str中出现次数最多的前(int)名以及次数的一个元组.
+    2. namedtuple类: 命名元组有助于对元组每个位置赋值,Point = namedtuple('point',['x','y']) p = Point(10,20)代表p.x = 10,p.y=20
+    3.OrderedDict(): 创建有序字典dict,先增加的键值对排在前面
+
+sys库:
+    1. sys.stdout.write("\r{}".format(x)) 实时输出进度条,可用于下载某文件时进度可视
+       sys.stdout.flush()   清空缓存
+
+from six.moves import urllib(爬虫爬取数据)
+urllib库:
+    urllib.request.urlretrieve(url, filename=None, reporthook=None, data=None) url代表网址,filename本地路径,reporthook进度
+例如:def _progress(count, block_size, total_size):
+        prog = float(count * block_size) / float(total_size) * 100.0
+        sys.stdout.write('\r>> Downloading %s %.1f%%' %(filename, prog))
+        sys.stdout.flush()
+    filepath, _ = urllib.request.urlretrieve(url, filepath,reporthook=_progress)
+
+zipfile:
+    zipfile.Zipfile(zip_path,'r').extractall(file_dir) 把zip_path下的压缩包zip中所有文件解压在file_dir目录下
+
+json库:
+    1.json文件 轻量级数据交换文件, json.load()加载json文件(解码) 
+      json.dump()对文件进行写操作 例如:完成一个json文件的复制 
+        hypes = json.load() 
+        target_file = os.path.join(dir,"hypes.json")
+        with open(target_file,"w") as f:
+            json.dump(hypes, f, indent=2, sort_keys=True) 将hypes数据复制到target_file中
+
+
+os库:
+    1. os.path.realpath(one_file) 输出one_file的绝对路径
+    2. os.path.dirname() 返回上层目录的路径(文件和目录)
+    3.os.path.splitext():将文件名与拓展名分割生成一个元组，可调用 例如 ./zhihui/chen.jpg = (./zhihui/chen, .jpg)
+    4.os.system():在python中调用linux下命令,例如:os.system('cp %s %s' % (model_file, dir))将model_file复制到dir目录下
+    
+
+imp库
+    1.imp.load_source(name,pathname[,file])的作用把源文件pathname导入到name模块中.name可以是自定义的名字或者内置的模块名称.
+
+tensorflow库:
+    1.tf.clip_by_value(A, min, max)：输入一个张量A,把A中的每一个元素的值都压缩在min和max之间.小于min的让它等于min,大于max的元素的值等于max.
+    2.tf.concat(a,b,axis=):用来拼接张量的函数,axis=0代表在第0个维度拼接,axis=1代表在第1个维度拼接,例如两个shape为【2,3】的在axis=0时变为shape为【4,3】,axis=1时则变为shape为【2,6】
+    3.tf.floor(x, name=None) 是向下取整,3.6=>3.0.注意向上取整和向上取整都是浮点数
+    4.tf.ceil(x, name=None) 是向上取整,3.6=>4.0.
+    6.tf.cast(a,dtype) 把a中数据类型 转换为dtype类型,例如[1,0,1,0,0],dtype = "bool",就转换成[true,false,true,false,false]. 
+    5.tf.gather(a,b) 根据b中的参数值取出a中对应的切片值(只能一维) 例如: tmp = [1,2,3,4,5,6,7,8,9] tmp2=tf.gather(tmp,[1,5,8]) 输出tmp2=[2,6,9]
+  5-2.tf.gather_nd(a,b) 根据b中的参数取出多维数组a中的相对应的切片值 例如: 一个a为shape[3,2,3]的数组 b为shape[2,2,3] 得到的是b的前两个维度[2,2]和看b中第三个维度大小指定的是某个元素还是某一个维度,此时3在a(3维数组)指定的是一个元素,因此最后得到的是[2,2,1]的数组.
+        例2:a为shape[batch,npoints,channels]的三维数组 b为shape[batch,npoints,2]的三维数组 tf.gather_nd(a,b)得到的是b的前两个维度大小[batch,npoints],b的第三个维度为2只能指定a的前两个维度,所以输出的第三个维度为channels,所以得到的数组shape为[batch,npoints,channels]    假如b为shape[batch,npoints,3]则得到的数组是shape[batch,npoints,1]
+   
+    6.tf.expand_dims() 使维度增加1
+    7.tf.reduce_sum(arr,reduction_indices=[]) 把指定的维度相加(reduction_indices=[x] x=0,代表列(同一列相加)操作，x=1,代表行(同一行相加)操作)
+    8.tf.reduce_mean() 把指定维度求平均值
+    9.tf.GraphKeys.REGULARIZATION_LOSSES 正则化(L1 or L2)损失,regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
+                                        在使用tf.get_variable()和tf.variable_scope()的时候,你会发现,它们俩中有regularizer形参.如果传入这个参数的话,那么variable_scope内的weights的正则化损失,会被添加到GraphKeys.REGULARIZATION_LOSSES中.
+    10.tf.maximum() 取函数内最大值
+    11.tf.reduce_sum(a,axis) 降维求和,第二个参数代表维度
+    12.tf.logical_and(true,false) 逻辑关系 ‘与’ 输出false
+    13.tf.logical_or(true,false) 逻辑关系 “或” 输出true
+    14.tf.less(a,b) a,b为两个tensor，若a<b,true, a>b,false,返回一个bool类型的tensor.
+    15.tf.greater(a,b) a,b为两个tensor，若a<b,false, a>b,true,返回一个bool类型的tensor.
+    16.tf.app.flags.FLAGS.DEFINE_string("name","默认值","提示信息") 可以在运行程序时进行传参,或者默认值传参(参数可以是文件)
+    17.tf.transpose(array,perm=[1,0,2]) perm中填写要转置的维度,所有维度都要写出来.
+    20.tf.train.slice_input_producer([tensor_list],shuffle =True,name) tensor生成器,每次按顺序或随机抽取出一个tensor放入文件名队列,其中tensor_list第一维度必须一样,有多少图像就对应多少标签.   
+    21.tf.image.resize_images(image,[height,width],method = ) resize图片,[height,width]代表output图片的高度和宽度,method代表resize图片的方式,有0-3四种插值方式
+            0:双线性插值算法(bilinear interpolation)
+            1:最近邻法(nearest neighbor interpolation)
+            2:双三次插值法(bicubic interpolation)
+            3:面积插值法(area interpolation)
+
+    18.tf.nn.conv2d(input,filter,stride,padding,use_cudnn_on_gpu,name="") 卷积层:input指需要做卷积的输入图像,要求是一个tensor,具有[batch,in_height,in_width,in_channels]这样shape.含义是[训练时一个batch的图片数量,图片高度,图片宽度,图像通道数]
+                                                                                filter指卷积核,也是一个4维的tensor[filter_height,filter_width,in_channels,out_channels(filter_num)].含义是[卷积核高度,卷积核宽度,输入图像通道数,输出图像通道数(卷积核个数)]
+                                                                                stride指步数,一个一维的向量,长度为4    padding代表是否用0填充图像
+                                                                                后面为是否使用cudnn加速  节点命名
+关于卷积中padding填充图像规则:
+    if (in_height % strides[1] == 0):
+      pad_along_height = max(filter_height - strides[1], 0)
+    else:
+      pad_along_height = max(filter_height - (in_height % strides[1]), 0)
+    if (in_width % strides[2] == 0):
+      pad_along_width = max(filter_width - strides[2], 0)
+    else:
+      pad_along_width = max(filter_width - (in_width % strides[2]), 0)
+
+    pad_top = pad_along_height 
+    pad_bottom = pad_along_height - pad_top
+    pad_left = pad_along_width 
+    pad_right = pad_along_width - pad_left
+    
+    19.tf.nn.conv2d_transpose(input,filter,output_shape,stride,padding="same",data_format="NHWC([batch,height,width,in_channels])",name="none")
+            image:需要做反卷积的图像
+            filter:卷积核[filter_height,filter_width,output_channels,in_channels](反卷积卷积核的后两个参数与卷积层刚好想反)
+            output_shape:输出图像的shape[batch,height,width,channels](卷积操作是没有该参数的,因为反卷积shape不一定,所以需指定)
+
+tensorflow知识点(3-D detection):
+    1.Batch_Normalization(批标准化):
+        作用:1.缓解DNN训练中梯度消失的问题
+            2.加快模型的训练速度
+        tf.contrib.layers.batch_norm(inputs,center,is_training,decay,updates_collections,scope,data_format)
+            1.inputs: 输入
+            2.center: 如果为true,有beta偏移量,如果为false,则没有beta偏移量
+            3.is_training: 
+
+    2.tf.tile(inputs, multiples, name=None):
+        对input进行扩展的函数,对input张量进行一定规则复制,输出张量维度不变.
+        例:inputs = [batch, 1, 1 , 1024] multiples=[1,num_points,1,1] 输出为[batch, num_points,1,1024] 
+
+    3.tf.squeeze(input, axis=None, name=None, squeeze_dims=None):
+        将input中所有维度为1都删除,例如[32,2048,1,2,1] 输出为[32,2048,2],若指定的axis的维度不为1,将报错
+        axis为指定删除的维度,默认所有为1的维度都删除
+
+    4.tf.slice(input,begin,size,name=None):
+        将input做切片,从begin指定的元素开始,返回一个为size的切片.注意切片的大小,例如一个[batch,num_points,2] size=[-1,-1,1] -1代表所有,返回的是一个[batch,num_points,1]的张量  
+        
+    5.tf.py_func(func,[input],Tout,stateful=True,name=None):
+        调用这个函数,可以让tensor在自定义的func中进行np.运算,大大扩展了程序的灵活性.
+        func代表自定义函数,[input]代表传入自定义函数的参数,Tout代表输出tensor的数据类型.
+
+    6.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

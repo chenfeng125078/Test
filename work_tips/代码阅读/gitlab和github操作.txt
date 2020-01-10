@@ -1,0 +1,39 @@
+gitlab 操作 进行 代码更新与版本控制
+
+1.首先需要安装git工具
+    windows下载地址：https://git-scm.com/downloads
+    ubuntu直接用命令行进行安装：sudo apt-get install git
+
+2.先拉取本地仓库
+    git clone (你项目的url地址)
+
+3.更新代码（更新到本地仓库）
+   git pull
+
+3.对项目进行各种修改之后,可以查看那些文件发生了变动
+    git status
+
+4.将所有改动加到缓存区
+    git add .
+
+5.提交改动
+    git commit -m "此次改动命名"
+
+6.把改动推到github上从而进行版本更新
+    git push
+
+7.查看版本日志(从而进行版本控制、版本回退、某一版本反做)
+    git log
+
+8.版本回退(回退到某一之前版本,该版本之后的所有改动都会删除,谨慎使用)
+    git reset -- hard 版本号(通过git log查看前7位)
+    git push -f (强推，因为你本地版本低于远程仓库版本)
+
+9.版本反做(重做某一版本,比如在某一版本你删除了test.txt文件,但是你后面想保留)
+    git revert -n 版本号
+    git commit -m "name"
+    git push
+
+10.git命令出现fatal: Unable to create 'xxx/.git/index:File exists.问题
+
+   解决方法：在命令行输入 rm -f .git/index.lock

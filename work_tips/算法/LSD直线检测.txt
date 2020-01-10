@@ -1,0 +1,12 @@
+//    LSD(line segment detector)
+// LSD vector<Vec4f> is [point1.x, point1.y, point2.x, point2.y]
+    Ptr<LineSegmentDetector> ls = cv::createLineSegmentDetector(LSD_REFINE_STD);
+    double start = double(getTickCount());
+    vector<Vec4f> lines_std;
+    ls->detect(img_gray, lines_std);
+    std::cout << "It took " << duration_ms << " ms." << std::endl;
+    Mat drawnLines(img_gray);
+    ls->drawSegments(drawnLines, lines_std);
+    cout << "line_number: " << lines_std.size() << endl;
+    cv::imshow("Standard refinement2", drawnLines);
+    cv::waitKey(1);

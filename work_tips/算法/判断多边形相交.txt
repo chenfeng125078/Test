@@ -1,0 +1,153 @@
+//排斥实验
+bool IsRectCross(const Point &p1,const Point &p2,const Point &q1,const Point &q2)
+{
+    bool ret = min(p1.x,p2.x) <= max(q1.x,q2.x)    &&
+               min(q1.x,q2.x) <= max(p1.x,p2.x) &&
+               min(p1.y,p2.y) <= max(q1.y,q2.y) &&
+               min(q1.y,q2.y) <= max(p1.y,p2.y);
+    return ret;
+}
+//跨立判断
+bool IsLineSegmentCross(const Point &pFirst1,const Point &pFirst2,const Point &pSecond1,const Point &pSecond2)
+{
+    long line1,line2;
+    line1 = pFirst1.x * (pSecond1.y - pFirst2.y) +
+            pFirst2.x * (pFirst1.y - pSecond1.y) +
+            pSecond1.x * (pFirst2.y - pFirst1.y);
+    line2 = pFirst1.x * (pSecond2.y - pFirst2.y) +
+            pFirst2.x * (pFirst1.y - pSecond2.y) +
+            pSecond2.x * (pFirst2.y - pFirst1.y);
+    if (((line1 ^ line2) >= 0) && !(line1 == 0 && line2 == 0))
+        return false;
+
+    line1 = pSecond1.x * (pFirst1.y - pSecond2.y) +
+            pSecond2.x * (pSecond1.y - pFirst1.y) +
+            pFirst1.x * (pSecond2.y - pSecond1.y);
+    line2 = pSecond1.x * (pFirst2.y - pSecond2.y) +
+            pSecond2.x * (pSecond1.y - pFirst2.y) +
+            pFirst2.x * (pSecond2.y - pSecond1.y);
+    if (((line1 ^ line2) >= 0) && !(line1 == 0 && line2 == 0))
+        return false;
+    return true;
+}
+
+bool GetCrossPoint(const Point &p1,const Point &p2,const Point &q1,const Point &q2,long &x,long &y)
+{
+    if(IsRectCross(p1,p2,q1,q2))
+    {
+        if (IsLineSegmentCross(p1,p2,q1,q2))
+        {
+            //求交点
+            long tmpLeft,tmpRight;
+            tmpLeft = (q2.x - q1.x) * (p1.y - p2.y) - (p2.x - p1.x) * (q1.y - q2.y);
+            tmpRight = (p1.y - q1.y) * (p2.x - p1.x) * (q2.x - q1.x) + q1.x * (q2.y - q1.y) * (p2.x - p1.x) - p1.x * (p2.y - p1.y) * (q2.x - q1.x);
+            if (tmpLeft == 0){
+                x = p1.x;
+                y = p1.y;
+                return true;
+            }
+
+            x = (int)((double)tmpRight/(double)tmpLeft);
+
+            tmpLeft = (p1.x - p2.x) * (q2.y - q1.y) - (p2.y - p1.y) * (q1.x - q2.x);
+            tmpRight = p2.y * (p1.x - p2.x) * (q2.y - q1.y) + (q2.x- p2.x) * (q2.y - q1.y) * (p1.y - p2.y) - q2.y * (q1.x - q2.x) * (p2.y - p1.y);
+            y = (int)((double)tmpRight/(double)tmpLeft);
+//            printf("p1:%d,%d\n",p1.x,p1.y);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool IsPointInpolygon(vector<Point> poly,Point pt){
+    int i,j;
+    bool c = false;
+    for (i = 0,j = poly.size() - 1;i < poly.size();j = i++){
+        if ((((poly[i].y <= pt.y) && (pt.y < poly[j].y)) || ((poly[j].y <= pt.y) && (pt.y < poly[i].y))) && (pt.x < (poly[j].x - poly[i].x) * (pt.y - poly[i].y)/(poly[j].y - poly[i].y) + poly[i].x)){
+            c = !c;
+        }
+    }
+    return c;
+}
+
+bool PolygonClip(vector<Point> &poly1,vector<Point> &poly2,int centerx,int centery){
+    // connect point
+    std::vector<Point> interPoly;
+    long x,y;
+    for (int i = 0;i < poly1.size();i++){
+        int poly1_next_idx = (i + 1) % poly1.size();
+        for (int j = 0;j < poly2.size();j++){
+            int poly2_next_idx = (j + 1) % poly2.size();
+            if (GetCrossPoint(poly1[i],poly1[poly1_next_idx],poly2[j],poly2[poly2_next_idx],x,y)){
+//                printf("%d,%d,%d,%d,%ld,%ld\n",i,j,poly1_next_idx,poly2_next_idx,x,y);
+                if(x == centerx && y == centery)
+                {
+                    continue;
+                }
+                interPoly.push_back(cv::Point(x,y));
+            }
+        }
+    }
+    // inside point
+    for (int i = 0; i < poly1.size(); i++){
+        if (IsPointInpolygon(poly2,poly1[i])){
+            if(poly1[i].x == centerx && poly1[i].y == centery)
+            {
+                continue;
+            }
+            interPoly.push_back(poly1[i]);
+        }
+    }
+
+    for (int i = 0; i < poly2.size(); i++){
+        if (IsPointInpolygon(poly1,poly2[i])){
+            if(poly2[i].x == centerx && poly2[i].y == centery)
+            {
+                continue;
+            }
+            interPoly.push_back(poly2[i]);
+        }
+    }
+
+    if(interPoly.size() <= 0)
+        return false;
+
+    return true;
+}
+
+
+
+//    vector<Vec4f> lines_static_std_tmp;
+//
+//    for (int i = 0; i < lines_static_std.size(); i = i + 1){
+//        vector<Point> poly1,poly2;
+//        poly1.push_back(Point(lines_static_std[i][0], lines_static_std[i][1]));
+//        poly1.push_back(Point(lines_static_std[i][2], lines_static_std[i][3]));
+//        poly1.push_back(Point(img.cols / 2, img.rows/ 2));
+//
+//        bool bIntersect = false;
+//
+//        for (int j = i + 1; j < lines_static_std.size();j++)
+//        {
+//            if(i == j)
+//                continue;
+//
+//            poly2.push_back(Point(lines_static_std[j][0], lines_static_std[j][1]));
+//            poly2.push_back(Point(lines_static_std[j][2], lines_static_std[j][3]));
+//            poly2.push_back(Point(img.cols / 2, img.rows/ 2));
+//
+//            if(PolygonClip(poly1,poly2,img.cols / 2, img.rows/ 2))
+//            {
+//                bIntersect = true;
+//                break;
+//            }
+//        }
+//
+//        if(!bIntersect)
+//            lines_static_std_tmp.push_back(lines_static_std[i]);
+//    }
+//
+//    Mat line_result_mat = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+//    Ptr<LineSegmentDetector> ls = cv::createLineSegmentDetector(LSD_REFINE_STD);
+//    ls->drawSegments(line_result_mat,lines_static_std_tmp);
+//    cv::imshow("line_result_mat: ",line_result_mat);

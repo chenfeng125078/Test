@@ -1,0 +1,64 @@
+动态障碍物检测的基本思路(基于ros):
+    1.将点云图的点投到一个二维坐标系中
+    2.通过条件判断(x²+y²<=10,0.1<z<1.5)将满足条件的点投射到图片上
+    3.用opencv库进行轮廓线提取以及凸包提取(凸包提取相对不准)
+    4.改进: 用opencv LSD(线段分割检测)算法进行线段提取
+
+静态障碍物(地图可行域)检测基本思路(基于ros):
+    首先用一个 vector<Point>来装取障碍物的点
+    1.基于中心点在map的总mat上提取指定大小的矩阵
+    2.在矩阵中心点通过以射线的方式对边缘每个像素(类似于激光扫描)做线段(bresenham直线算法)
+        注:做直线时最好以中心点为x0,边缘像素为x1,这样的射线求与障碍物的交点与中心点最近,找到后可以直接push_back,然后break出循环从而节省时间
+    3.找取每条线段中障碍物最近的点(for(i;i<mat.rows/2;i++)通过斜率乘以i再通过向上取整(向下取整)求出y值)
+    4.用条件判断在点(x0±i,y0±y)的像素则可知道是否为障碍物(也有可能整条线段上都没有障碍物(在这里灰度图像中障碍物像素为0))
+    5.在此需要多次判断条件4中像素位置(当x1在x轴上以及x=mat.rows上移动时,还需求x0-x1/(y0-y1)即斜率的倒数,在在循环中求出变化的x值)
+    6.最后在创建一个初始全为0的灰度图像(cv::Mat test = cv::Mat::zeros(rows,cols,CV_8UC1))
+    7.对vector里面的点赋值255
+    8.cv::imshow("name ",test);
+      cv::waitKey(1);展示出来图片
+
+c++中opencv函数库:
+    
+    1.cv::Mat(mat1).at(x,y)与 cv::Mat(mat1).at(Point(x,y))的区别
+        cv::Mat.at(x,y)来访问坐标时,x对应的是y坐标,y对应的是x坐标.(即第x行第y列的点)
+        cv::May.at(Point(x,y))来访问坐标时,x则对应的是x坐标,y对应的是y坐标.
+        所以一般用第二种访问像素坐标,可以免去x,y坐标和行列之间的转换
+    
+    2.cv::Mat(rows,cols,mode):
+        rows代表矩阵行数,cols代表矩阵列数,mode代表图像格式
+        mode = CV_8UC3(BGR) 赋值语句: mat1.at<Vec3d>(point(x,y))[0] = 255;(bule)
+                                     mat1.at<Vec3d>(point(x,y))[1] = 255;(green)
+                                    mat1.at<Vec3d>(point(x,y))[2] = 255;(red)
+        mode = CV_8UC1(GRAY) 赋值语句: mat1.at<uchar>(point(x,y)) = 255;(gray)  
+    
+    3.cv::cvtColor(img, img_gray, CV_BGR2GRAY):将rgb彩色图像(img)转换为gray灰度图像(img_gray)
+
+    4.cv::threshold(src(img_gray), dst(threshold_mat), num1=200, num2=255, mode):将灰度图像(img_gray)转换为二值图像(二值化)threshold_mat
+        num1代表阀值 num2代表max_value mode代表二值化模式
+        mode=CV_THRESH_BINARY:如果 src(x,y)>threshold(num1) ,dst(x,y) = max_value; 否则,dst（x,y）=0;
+        mode=CV_THRESH_BINARY_INV:如果 src(x,y)>threshold(num1),dst(x,y) = 0; 否则,dst(x,y) = max_value.
+
+    5.cv::findContours(threshold_mat, contours, cv::noArray(), mode=cv::RETR_EXTERNAL, method=cv::CHAIN_APPROX_SIMPLE):寻找二值化图像中的轮廓线(contours)
+        contours数据类型vector<vector<Point>> contours
+        mode代表轮廓的检索方式: 1.cv::RETR_EXTERNAL:只检索最外围轮廓 2.CV_RETR_LIST:检测所有的轮廓
+        method代表定义轮廓的近似方法: 1.CV_CHAIN_APPROX_NONE:保存物体边界上所有连续的轮廓点到contours向量内 2.CV_CHAIN_APPROX_SIMPLE:仅保存轮廓的拐点信息，把所有轮廓拐点处的点保存入contours向量内，拐点与拐点之间直线段上的信息点不予保留
+
+    6.cv::Mat img_gray=cv::Scalar::all(0):将矩阵mat内的值全初始为0
+
+    7.cv::drawContours(img_gray, contours, index(-1), color, thickness=1, lineType=8):用于绘制findContours()函数找到的轮廓线,绘制的图像在img_gray中.
+        contours:轮廓线列表vector<vector<Point>>
+        index:需要绘制的轮廓线,-1表示所有轮廓线
+        color:轮廓线颜色cv::Scalar::all(255)白色    thickness 表示轮廓线宽度     lineType  表示轮廓线邻域方式 '8'代表8邻域,'4'代表4邻域
+
+    8.cv::Canny(img_gray(灰度图), img(输出边缘图像), num1, num2, aperture_size=3):边缘检测算子.  相比于寻找轮廓线能有效的去除噪声点,必须尽量精确确定边缘位置.
+        边缘检测算子:小阈值用来控制边缘连接,大的阈值用来控制强边缘的初始分割即如果一个像素的梯度大与上限值,则被认为是边缘像素,如果小于下限阈值,则被抛弃.如果该点的梯度在两者之间则当这个点与高于上限值的像素点连接时我们才保留,否则删除.
+
+    9.cv::createLineSegmentDetector(LSD_REFINE_STD):线段检测
+        vector<Vec4f> lines_std;    (线段)其中线段表达方式为两端点的坐标[point1.x, point1.y, point2.x, point2.y]
+        Ptr<LineSegmentDetector> ls = cv::createLineSegmentDetector(LSD_REFINE_STD);
+        ls->detect(mat, lines_std);  (在mat内检测线段存入lines_std中)
+        Mat drawnLines(mat);
+        ls->drawSegments(drawnLines, lines_std);
+        cout << "point_line_number: " << lines_std.size() << endl;
+
+        

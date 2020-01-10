@@ -1,0 +1,15 @@
+1.linux下实时查看显卡(each 2s):watch -n 2 nvidia-smi
+
+2.linux中文件权限受制,增加文件权限(permission denied): sudo chmod -R 777 (dir)
+                                      or         sudo chmod +x (dir)
+
+3.查看cuda版本:cat /usr/local/cuda/version.txt
+
+4.查看cudnn版本:cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2
+
+5.复制github上的源码:git clone(网址).
+
+6.ifconfig: 查看主机ip地址　例如:192.168.0.110
+    hostname: 查看主机名称
+
+7.

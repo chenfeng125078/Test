@@ -1,0 +1,7 @@
+1. python 3.x 错误 ‘generator’ object has no attribute ‘next’
+
+    原因是在python 3.x中 generator（有yield关键字的函数则会被识别为generator函数）中的next变为__next__了,next是python 3.x以前版本中的方法,只需要把next()变成__next__()即可
+
+2."ValueError: Object arrays cannot be loaded when allow_pickle=False"
+
+    该错误原因是numpy版本过高,只需 sudo pip3 install numpy==1.16.2即指定numpy版本为1.16.2

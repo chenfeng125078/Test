@@ -1,0 +1,13 @@
+需要从另一台电脑copy传输文件数据到本地电脑
+
+1.下载openssh_server: sudo apt-get install openssh-server
+
+2.查看远端服务器(另一台电脑)的ip地址: 在终端输入　ifconfig 得到ip地址　例如:192.168.0.110
+
+3.连接远端服务器(另一台电脑): 格式: ssh username＠servername　例如: ssh zhihui＠192.168.0.110(需要输入服务器密码)
+
+4.从远端服务器(另一台电脑)复制整个目录(文件不要 -r)到本地某个指定目录: 格式: scp -r username＠servername:/path/dir /home/my_dir
+
+    例如: scp -r zhihui＠192.168.0.110:/home/zhihui/MyFiles/tensorflow-yolov3  /home/zhkjrobot/Projects
+
+5.从本地目录上传至远端服务器: 格式: scp -r local_dir username＠servername:remote_dir 
