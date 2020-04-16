@@ -19,11 +19,11 @@ def create_uci_labels():
             destinations = [(t, n1) for t in range(9)] + \
                            [(l1, t) for t in range(10)] + \
                            [(l1 + a, n1 + b) for (a, b) in
-                            [(-2, -1), (-1, -2), (-2, 1), (1, -2), (2, -1), (-1, 2), (2, 1), (1, 2)]]  # 马走日
+                            [(-2, -1), (-1, -2), (-2, 1), (1, -2), (2, -1), (-1, 2), (2, 1), (1, 2)]]  # 横走,竖走,马走日
             for (l2, n2) in destinations:
                 if (l1, n1) != (l2, n2) and l2 in range(9) and n2 in range(10):
                     move = letters[l1] + numbers[n1] + letters[l2] + numbers[n2]
-                    labels_array.append(move)
+                    labels_array.append(move)  # 判断是否超过棋盘限制
 
     for p in Advisor_labels:
         labels_array.append(p)
