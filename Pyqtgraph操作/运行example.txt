@@ -1,0 +1,4 @@
+1.打开conda环境
+2.输入python,进入python环境
+3.import pyqtgraph.examples  (导入例程)
+4.pyqtgraph.examples.run()  (运行例程)

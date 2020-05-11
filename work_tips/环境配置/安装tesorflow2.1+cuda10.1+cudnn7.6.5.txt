@@ -1,0 +1,19 @@
+1.安装anaconda，cuda，cudnn
+参照博客
+	https://blog.csdn.net/weixin_44170512/article/details/103990592    
+注：其中最好是讲cudnn中的文件copy到cuda10.1对应的文件夹下 cudnn.lib-->cuda.lib
+      cudnn.include-->cuda.include
+      cudnn.bin-->cuda.bin
+
+2.此时会报错 DLL报错
+需要下载 vs2015-2019
+参照博客：
+	https://support.microsoft.com/zh-cn/help/2977003/the-latest-supported-visual-c-downloads
+
+3.安装tensorflow2.1-gpu版本
+	"pip install -U tensorflow-gpu -i https://pypi.tuna.tsinghua.edu.cn/simple"
+
+4.验证环境
+	python终端
+	import tensorflow as tf
+	tf.test.is_gpu_available()   返回True代表成功

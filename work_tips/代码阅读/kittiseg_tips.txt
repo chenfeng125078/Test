@@ -1,47 +1,5 @@
 数据中心：图片 smb://datacenter/tech/zed
 
-查看cuda版本:cat /usr/local/cuda/version.txt
-
-查看cudnn版本:cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2
-
-前提在ubuntu系统下先安装anaconda3： 
-    https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/ 下拉到最低端选择Linux，选择最新版（32/64位）下载。
-    在下载的目录下打开终端：bash Anaconda3-4.2.0-Linux-x86_64.sh
-            安装成功后重启终端,输入conda判断是否安装成功
-            sudo gedit ~/.bashrc
-            export PATH="/home/zhihui/anaconda3/bin:$PATH"
-            保存后 source /.bashrc
-            即可 source activate 虚拟环境
-            conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/    (镜像环境)
-    修改配置文件：在anaconda_envs中
-
-anaconda3下的各种操作:
-    1.创建环境: conda create -n py2 python=2.7
-    2.激活环境: conda activate py2
-    3.退出环境: conda deactivate
-    4.删除环境: conda remove -n py2 --all
-    5.安装安装包: conda install numpy
-    6.卸载某个包: conda uninstall numpy
-    7.查看环境: conda list
-    8.查看所有环境: conda info --envs
-
-在ubuntu anaconda系统下安装opencv:
-        source activate (name)
-    激活虚拟环境后:conda install --channel https://conda.anaconda.org/menpo opencv(默认安装2.4.11版本，opencv->opencv3默认安装3.1.0版本
-
-语义分割环境配置：（https://github.com/MarvinTeichmann/KittiSeg）
-
-红蓝色为软分割，绿色为硬分割
-    
-    conda create -n py2 python=2.7
-    source activate py2
-    下载安装包以及依赖包：
-    conda install cudatoolkit=8.0 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/linux-64/   (安装cuda)
-    conda install cudnn=7.0.5 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/linux-64/            （安装cudnn可以自己改版本）
-
-    conda install -n py2 tensorflow  (安装tensorflow)
-    conda install -n py2 tensorflow-gpu (安装tensorflow-gpu(最后安装))
-
     激活虚拟环境情况下：pip install numpy==1.16.2 scipy pillow matplotlib commentjson(numpy版本过高会报错)
     git clone https://github.com/MarvinTeichmann/KittiSeg.git(语义分割的网址)
     git submodule update --init --recursive （更新代码）

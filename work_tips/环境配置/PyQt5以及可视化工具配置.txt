@@ -1,0 +1,56 @@
+在anaconda安装完之后里面自带PyQt5
+
+1.去anaconda3--Lib--site-packages中找到pyqt卸载
+
+2.pip install PyQt5
+
+3.pip install PyQt5-tools
+
+4.运行pyqt5中qt_designer进行可视化图形界面开发
+	可能报错：找不到VCRUNTIME140.dll，无法运行可视化工具
+     4.1解决办法：VCRUNTIME140.dll 可解读为 VC运行环境14.0版本，也就是说缺少vs2015中的一个组件
+	此时只需单独下载缺少的组件而不必安装vs2015 
+     4.2.
+         64位版下载地址： http://download.microsoft.com/download/9/E/1/9E1FA77A-9E95-4F3D-8BE1-4D2D0C947BA2/enu_INREL/vcredistd14x64/vc_redist.x64.exe
+         32位版下载地址：http://download.microsoft.com/download/9/E/1/9E1FA77A-9E95-4F3D-8BE1-4D2D0C947BA2/enu_INREL/vcredistd14x86/vc_redist.x86.exe
+
+5.此时可以打开designer.exe进行可视化界面开发
+
+6为了以后方便，此时在pycharm中加入1.Qtdesigner(图形界面开发).  2.PyUIC(UI文件转换为py文件).  3.Pyrcc(pyqt5文件转码)
+        1.Qtdesigner(图形界面开发)：
+	6.1 打开PyCharm，选择Settings -> Tools -> External Tools，点击左上角的绿色加号
+	6.2 name中填入QtDesigner，Program选择我们安装的PyQt5-tools下面的designer.exe（C:\Anaconda3\Lib\site-packages\pyqt5_tools\Qt\bin.designer.exe）
+	6.3 Working directory则选择工作目录（$FileDir$）
+        2.PyUIC(UI文件转换为py文件)：
+	6.1 name中填入PyUIC, Program选择(C:\Anaconda3\python.exe),  
+	6.2 Arguments选择(-m PyQt5.uic.pyuic $FileName$ -o $FileNameWithoutExtension$.py)
+	6.3 Working directory则选择工作目录（$FileDir$）
+        3.Pyrcc(pyqt5文件转码):
+	6.1 name中填入Pyrcc, Program选择(C:\Anaconda3\Scripts\pycc.exe),  
+	6.2 Arguments选择($FileName$ -o $FileNameWithoutExtension$_rc.py)
+	6.3 Working directory则选择工作目录（$FileDir$）	  
+
+7.在pycharm上的功能键Tools中可选择你添加的工具，选择Qtdesigner进入图形界面开发    
+
+8.Qtdesigner编辑界面完保存后会在目录下存有一个ui文件,选择该UI文件选择PyUIC工具可转换为py文件（该文件是整体结构，运行并不能显示出界面，需要重新写一个脚本）
+
+9.显示脚本如下：
+import sys
+from My_demo import Ui_widget  （转换的py文件中重写的类class）
+from PyQt5 import QtGui, QtWidgets, QtCore
+
+class MyWindow(QtWidgets.QWidget, Ui_widget):
+    def __init__(self):
+        super(MyWindow, self).__init__()
+        self.setupUi(self)
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    myWin = MyWindow()
+    myWin.show()
+    sys.exit(app.exec_())
+
+10.pyqtgraph的配置与应用：pyqtgraph基于pyqt5所作的功能开发，功能更强大(ImageView展示的图片可缩放，ParameterTree生成参数树).
+        10.1.安装pyqtgraph：https://github.com/pyqtgraph/pyqtgraph （github上多种安装方式，装最新版本，否则可能展示图片尺寸不对）
+        10.2.检测安装完成 cmd进入python界面  import pyqtgraph.examples --> pyqtgraph.examples.run() 进入例程界面
+        10.3.将ImageView以及ParameterTree合成在一个界面中

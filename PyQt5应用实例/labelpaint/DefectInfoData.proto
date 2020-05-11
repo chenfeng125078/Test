@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+
+
+message Image
+{
+	bytes buf = 1;
+}
+
+message FeatureInfoData
+{
+    string featurename = 1;
+	float featureVal = 2;
+}
+
+
+message SingleDefectData
+{
+    int32 n_Id = 1;
+    float meter = 2;
+	string defectType = 3;
+    Image realTimeImg = 4;
+	Image standardImg = 5;
+	repeated FeatureInfoData featureData = 6;
+	float h_resolution = 7;
+	float v_resolution = 8;
+	int32 curjudgeresult = 9;
+}
+
+message DefectStatistic
+{
+    string defectName = 1;
+	int32 defectCount = 2;
+}
+
+message ReelDefectData
+{
+    string reelNum = 1;
+	float totalMeter = 2;
+	string backuptime = 3;
+	string productName = 4;
+	int32 cellNum = 5;
+	repeated DefectStatistic defectCountStatistic = 6;
+    repeated SingleDefectData defectDataList = 7;
+}
+
+
