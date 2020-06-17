@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="be4cb9ba-2aea-4a21-8f3c-b6bdd322f3f4" name="Default Changelist" comment="" />
+    <list default="true" id="be4cb9ba-2aea-4a21-8f3c-b6bdd322f3f4" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../PyQt5应用实例/test" beforeDir="false" afterPath="$PROJECT_DIR$/../PyQt5应用实例/test" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../work_tips/环境配置/安装tesorflow2.1+cuda10.1+cudnn7.6.5.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../work_tips/环境配置/安装tesorflow2.1+cuda10.1+cudnn7.6.5.txt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -19,7 +22,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../启发式算法" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="SvnConfiguration">
     <configuration />

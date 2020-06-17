@@ -9,6 +9,7 @@
 需要下载 vs2015-2019
 参照博客：
 	https://support.microsoft.com/zh-cn/help/2977003/the-latest-supported-visual-c-downloads
+	下载x_64版本(电脑版本)：vc_redist.x64.exe
 
 3.安装tensorflow2.1-gpu版本
 	"pip install -U tensorflow-gpu -i https://pypi.tuna.tsinghua.edu.cn/simple"

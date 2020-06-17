@@ -1,0 +1,69 @@
+1.主站连接一个子站：
+	1.设计主界面：主界面图形在UI文件夹内，通过qtdesigner绘制出ui文件 -> pyuic将ui文件转换为py文件 -> 在py文件内对图像进一步调整
+-> 对部分部件进行重命名 -> 导入pyqtgraph，将图像显示窗口转换为GraphicsView( ) -> ui界面设计完成在 test_monitoringwidget.py 中将该ui界面导入
+-> 在test_monitoringwidget.py中 recmsg函数中对需要输出的文本或者展示的图像进行函数编写
+
+	2.设计子站界面：1.子站界面检查方法的图形界面设计在project.param的py文件中，
+		              这里是通过封装pyqtgraph中参数树类对图形界面进行便捷开发，其中参数树中type决定各种参数设置图形：按钮、阈值
+		           2.将检查方法添加至project.param的__init__文件中
+
+	3.子站主站配置：可通过ApplicationSetting.xml配置，其中substation1代表子站1，ui_parameter_terms代表该子站下的检查方法（界面）
+
+	4.子站对数据处理
+
+
+2.主站连接多个子站：
+	1.先修改主站配置文件ApplicationSetting.xml，添加子站2：substation2，并复制checkstation.exe到一个目录（相当于程序），
+		    并指定子站2的exepath为目录下的该运行程序，在ui_parameter_terms下添加检查方法
+
+	2.修改子站配置：将子站1的网络子站id NetStationId 改为0，图像存储路径设为d:\1.dat。ExposureSave路径改为d:\ColorExposureSaveQue1.dat
+		          子站2的Id设为1，图像存储设为d:\2.dat, ExposureSave路径改为d:\ColorExposureSaveQue2。保存配置
+
+
+3.在子站创建新的数据处理方法：
+	1.先基于基类创建一个新的检查方法类DemoThreshold.h文件，基类为BaseCheckMethod.h文件中，
+		其中有私有变量、构造函数(定义初始变量)、析构函数(释放内存)、从xml读取主站数据.....
+	
+	2.基于头文件DemoThreshold.h创建新的类Testing，其中构造函数Testing::Testing、析构函数Testing::~Testing、新的数据处理方法函数......
+
+	3.在KxCheck.cpp中方法 CKxCheck::InitCheckMethod()中初始化实例类 Testing 即添加代码:m_hCheckTools[1] = new Testing
+
+	4.修改CKxCheck::AnalyseCheckResult( ) 方法，将新的检查结果写入json发出去，主站在test_monitoringwidget.py通过键值对调用数据进行显示
+
+
+4.在子站添加新的消息类型并发送到主站(例：主站按钮触发后子站发送一个数字过去)
+	1.统一主站和子站的消息数据类型=2020
+
+主站操作：1.在imc_msg.py定义消息类型MSG_SEND_A = 2020，并将该消息类型添加到实时显示界面的消息列表中:list_monitoring_module=[MSG_SEND_A,.....] 
+
+	2.ui界面设计，pushButton按下后连接一个槽函数
+
+	3.test_monitoringwidget.py中导入sendmsg：  from library.ipc.ipc_tool import sendmsg
+
+	4.从主站发送消息到子站的槽函数slot_send:     sendmsg(0, imc_msg.MSG_SEND_A, "", self)
+
+	5.在test_monitoringwidget.py中添加接收子站回回来的消息：recmsg函数下
+
+子站操作：1.在global.h中定义消息类型MSG_SEND_A = 2020
+
+	2.在（网络目录下TestAsioTcpClient.h头文件）下CTestAsioTcpClien类中定义接收主站 2020类型 数据函数体
+		void RecMsgToA(const unsigned char* pExtDAta)
+
+	3.在 TestAsioTcpClient.cpp 文件下的 CTestAsioTcpClient::OnRecvData函数中定义接收到消息后发送消息回主站的函数
+		case MSG_SEND_A:
+			RecMsgToA(pExtData);
+			break;     也就是说消息类型为2020， 进入RecMsgToA(pExtData)函数体中
+
+	4.定义发送消息回主站的函数
+	void CTestAsioTcpClient::RecMsgToA(const unsigned char* pExtData)
+{
+	string result = "12";
+	if (Net::IsExistNetObj())
+{
+	Net::GetAsioTcpClient()->SendMsg(Config::g_GetParameter().m_nNetStationId, int(MSG_SEND_A), int(result.size()), result.c_str());
+}
+}
+
+因为不需要在子站对该消息 string result = "12"进行处理，所以此时主站子站消息互交换完成
+
+
