@@ -1,0 +1,78 @@
+1. 按照tensorflow2.1环境配置文档配置好cuda、cudnn、tensorflow2.1 环境
+
+2.数据集以及模型训练  
+	import pandas as pd(数据分析库)
+          1.创建image_list、label_list 分别存储图像数据以及图像对应的标签数据
+
+          2.将数据标签列表进行热编码化转换成 独热编码向量  label = pd.get_dummies(pd.DataFrame( label_list) )  ！！！注意此时数据还是表格形式 
+	其中 pd.DataFrame( )是将列表数据转换为表格形式     pd.get_dummies()将pd.DataFrame格式数据转换为独热编码形式
+
+	若表格数据有两列：有两个标签 比如有 颜色（color） 长度（length）两个特征 此时可以通过指定某个列将其转换为独热编码
+		pd.get_dummies(df.color)
+	
+	此时并不知道独热编码向量具体排序也就是说并不知道(0,1). (1,0)分别对应的类别，可通过 class_label = label.columns得到对应的类别
+	warnning：：注意通过该方法得到的编码向量 与 独热编码 有一定差异
+		其中（1，0）在该处代表的是“0”类别（0，1）代表的是“1”类别，why？ 因为是通过np.argmax(label)得到的
+		而在独热编码中（1，0）代表的是“1”类别，（0，1）代表的是“0”类别，因为独热编码是采用的计算机位存储的格式
+
+          3. image_list = np.array(image_list) : 将图像数据转换为 多维数组 形式
+              label = np.array(label ) : 将pd. 格式数据转换为 多维数组 形式
+ 
+         4. 划分训练集以及验证集：
+	sklearn 机器学习三方模块中有专门划分数据集的函数 train_test_split: 自身具有打乱数据集功能
+	     from sklearn.model_selection import train_test_split
+	其中得到的划分后的数据集为：
+	       xtrain, xtest, ytrain, ytest = train_test_split(image_list / 255.0, label, test_size=0.30, random_state=0)
+	各参数解释：
+	       1.数据集( 0-255 的图像数据需除以255.0)    2.数据集对应的标签   3.test_size: 验证集所占比例(例: 100个样本,test_size=0.33,说明33个样本作为验证集)   4.random_state: 随机数种子
+
+          5.导入网络模型（此处以 InceptionResNetV2 高级网络模型为例）
+	keras中网络模型分为 高级网络模型-函数式API（通过指定网络模型输入与输出构建）、序列模型
+	keras中文文档 (https://keras-cn.readthedocs.io/en/latest/other/application/)
+		     （https://keras.io/zh/activations/）
+	base_model = tf.keras.applications.InceptionResNetV2( include_top=False, weights=None, input_tensor=None, input_shape=None, pooling="avg")
+	参数解释:
+	       1.include_top：是否保留顶层的全连接网络
+	       2.weights：None代表随机初始化，即不加载预训练权重。'imagenet'代表加载预训练权重
+	       3.input_tensor：可填入Keras tensor作为模型的图像输出tensor
+	       4.input_shape：可选，仅当include_top=False有效，应为长为3的tuple，指明输入图片的shape，图片的宽高必须大于197，如(200,200,3)
+	       5.pooling：当include_top=False时，该参数指定了池化方式。None代表不池化，最后一个卷积层的输出为4D张量。‘avg’代表全局平均池化，‘max’代表全局最大值池化。
+	       6.classes：可选，图片分类的类别数，仅当include_top=True并且不加载预训练权重时可用。
+
+	继续添加全连接层 （看情况接多层全连接层）
+	from tensorflow.keras.layers import Activation(激励层), Dropout, Flatten("压平", 一维化,用于卷积层与全连接层的过渡), Dense(全连接层)
+	x_output = Dense(1024, activation='relu') (base_model.output)  
+	参数解释:
+	       1.全连接层的神经元个数
+	       2.激励函数 ：此处为 'relu' 函数
+		后面接输入
+	x_output = Dropout(0.5)(x_output) ：防过拟合
+	
+	最后接softmax分类层（全连接层, 激励函数：softmax）
+	prediction = Dense(2, activation='softmax')(x_output)
+
+	生成模型
+	from tensorflow.keras.models import Model
+	model = Model(inputs=base_model.input,  outputs=prediction)   inputs : 指定网络模型输入层  outputs: 网络模型的输出层
+
+          6.设置训练流程
+	model.compile(optimizer="adam", loss='categorical_crossentropy, metrics=['accuracy'])
+	      参数解释：
+	      1.optimizer: 优化器："sgd"、"rmsprop"、"adagrad"、"adadelta"、"adam"、"adamax"、"nadam"
+	      2.loss: 损失函数：常用损失函数有"mse(均方差，用于回归)",   "binary_crossentropy(对数损失，用于二分类sigmoid)",  "categorical_crossentropy(多分类对数损失，用于多分类softmax)"
+	      3.metrics：列表，包含评估模型在训练和测试时的性能的指标，(一般为准确度：metrics=[‘accuracy’]）如果要在多输出模型中为不同的输出指定不同的指标，可向该参数传递一个字典，例如metrics={‘output_a’: ‘accuracy’}
+	
+          7.在训练时添加 tensorboard 方便训练完后观察训练过程
+	添加 tensorboard 需要将训练、验证结果存在一个文件夹下，因此需要先创建一个文件夹，否则会报错（程序不能创建多层目录）！！！
+	log_dir = os.path.join("cnn_callback")
+	if not os.path.exists(log_dir):
+	     os.mkdir(log_dir)
+	指定存储目录：
+	tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir) 
+	喂数据进行模型训练：
+	hist = model.fit(xtrain, ytrain, epochs=100, batch_size=16, validation_data=(xtest, ytest), callbacks=[tensorboard_callback])
+	各参数含义：1. xtrain,ytrain：训练数据以及对应的标签    2. epochs：训练轮数（所有数据训练完一次为一轮）  3.batch_size:  批次（训练时一次放入的数据数量，这里是一次16张图像）
+
+
+
+
