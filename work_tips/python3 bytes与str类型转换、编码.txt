@@ -1,0 +1,32 @@
+1.utf-8编码格式与gbk编码区别：
+	gbk编码主要用中文编码，而utf-8编码包含全世界所有国家需要用的字符；
+	gbk的长度为2个字节，utf-8长度在1-6个字节（其中中文占用3个字节）；
+	所以和gbk相比，utf-8会占用更多的数据库储存空间。
+	对于gbk编码格式，虽然它的功能少，仅限于中文字符，但它所占用的空间大小会随着它的功能而减少。
+	utf-8编码格式很强大、兼容性比较好，支持所有国家的语言，只是中文占用的空间大小要比gbk大1个字节
+
+2.bytes类型：
+Python3 新增 bytes 类型，是指一堆字节的集合，十六进制表现形式，两个十六进制数构成一个 byte ，以 b 开头的字符串都是 bytes 类型
+计算机只能存储二进制，字符、图片、视频、音乐等想存到硬盘上，必须以正确的方式编码成二进制后再存，
+但是转成二进制后不是直接以 0101010 的形式表示的，而是用一种叫 bytes() 的类型来表示。
+
+str类型-->bytes类型(编码过程)：
+	>>> str0 = '我是中国人'
+	>>> str0.encode(encoding='utf-8')   # 用utf-8编码格式对字符串进行编码
+	b'\xe6\x88\x91\xe6\x98\xaf\xe4\xb8\xad\xe5\x9b\xbd\xe4\xba\xba'
+
+str类型-->bytes类型-->str类型(先编码后解码过程)：
+	>>> str0 = '我是中国人'
+	>>> result = str0.encode(encoding='utf-8')   # utf-8 编码
+	>>> result.decode(encoding='utf-8')   # utf-8 解码
+	'我是中国人'
+
+3.python3中 bytes() 类型以及 str() 类型进行分割
+str分割：
+	str_1 = "./chenfeng/2.bmp"
+	str_1.split("/")  # 得到 [".", "chenfeng", "2.bmp"]列表
+bytes分割：
+	bytes_1 = b"d:\\1.dat\x00\x88\x91\xe6"
+	bytes.split(b"\x00")    # 与str分割区别就是分割的字符  ""-->b"", 得到[b"d:\\1.dat", b"\x88\x91\xe6"]列表
+	bytes.split(b"\x00")[0].decode("utf-8")    # b"d:\\1.dat"解码得到 "d:\\1.dat"字符串类型路径 
+

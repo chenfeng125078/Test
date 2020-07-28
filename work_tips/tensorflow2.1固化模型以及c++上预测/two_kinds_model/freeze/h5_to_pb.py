@@ -45,7 +45,7 @@ from tensorflow.python.framework.convert_to_constants import convert_variables_t
 
 
 def convert_h5to_pb():
-    model = tf.keras.models.load_model("../cnn_callback/two_kinds_model.h5", compile=False)
+    model = tf.keras.models.load_model("../cnn_callback/xception.h5", compile=False)
     model.summary()
     full_model = tf.function(lambda Input: model(Input))
     full_model = full_model.get_concrete_function(tf.TensorSpec(model.inputs[0].shape, model.inputs[0].dtype))
@@ -62,11 +62,12 @@ def convert_h5to_pb():
         print(frozen_func.inputs)
         print("Frozen model outputs: ")
         print(frozen_func.outputs)
-        # Save frozen graph from frozen ConcreteFunction to hard drive
-        tf.io.write_graph(graph_or_graph_def=frozen_func.graph,
-                          logdir="./frozen_models",
-                          name="test.pb",
-                          as_text=False)
+    # Save frozen graph from frozen ConcreteFunction to hard drive
+    tf.io.write_graph(graph_or_graph_def=frozen_func.graph,
+                      logdir="./frozen_models",
+                      name="xception.pb",
+                      as_text=False)
 
 
 convert_h5to_pb()
+print("-------------")
