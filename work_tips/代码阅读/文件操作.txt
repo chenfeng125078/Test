@@ -39,6 +39,13 @@
                 附加操作与写几乎一样,只不过不会清除原文件内的内容,而是把字符添加到文件末尾
 
 
+4.xml读取与写入最简单操作 (转换成字典) ：
+    import xmltodict
+读取：
+    with open(filename, "r") as fd:
+           obj = xmltodict.parse(fd.read())['root']
+
+
 4.XML文件（可拓展标记语言） 写入操作 ( ros里面,opentcs里面用得比较多)
     xml文件有节点的概念，根节点后面支节点，支节点下可能还有支节点
 
